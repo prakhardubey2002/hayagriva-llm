@@ -1,0 +1,72 @@
+{
+  "name": "hayagriva-llm",
+  "version": "1.0.0",
+  "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
+  "type": "module",
+  "bin": {
+    "hayagriva-llm": "dist/cli.cjs"
+  },
+  "source": "src/cli.ts",
+  "main": "dist/cli.cjs",
+  "module": "dist/cli.mjs",
+  "exports": {
+    ".": {
+      "import": "./dist/cli.mjs",
+      "require": "./dist/cli.cjs"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "microbundle",
+    "prepare": "npm run build && husky",
+    "lint": "eslint src test --max-warnings 0",
+    "lint:fix": "eslint src test --fix",
+    "test": "vitest run",
+    "docs:install": "cd website && npm install",
+    "docs:start": "cd website && npm run start",
+    "docs:build": "cd website && npm run build",
+    "docs:serve": "cd website && npm run serve"
+  },
+  "size-limit": [
+    {
+      "name": "CLI (CJS)",
+      "path": "dist/cli.cjs",
+      "limit": "50 kB"
+    },
+    {
+      "name": "CLI (ESM)",
+      "path": "dist/cli.mjs",
+      "limit": "50 kB"
+    }
+  ],
+  "dependencies": {
+    "commander": "^12.1.0",
+    "dotenv": "^16.4.5",
+    "ts-morph": "^24.0.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.15.0",
+    "@types/node": "^22.10.0",
+    "eslint": "^9.15.0",
+    "microbundle": "^0.15.1",
+    "@size-limit/preset-app": "^11.0.0",
+    "size-limit": "^11.0.0",
+    "typescript": "^5.7.0",
+    "typescript-eslint": "^8.15.0",
+    "vitest": "^2.1.0",
+    "husky": "^9.1.7"
+  },
+  "keywords": [
+    "llm",
+    "metadata",
+    "npm",
+    "package",
+    "llm.txt"
+  ],
+  "license": "MIT"
+}

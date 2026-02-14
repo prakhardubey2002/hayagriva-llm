@@ -27,7 +27,7 @@ jobs:
       - name: Install website dependencies
         run: |
           cd website
-          npm ci
+          npm install --no-audit --no-fund
 
       - name: Build Docusaurus to docs/
         run: |

@@ -24,6 +24,7 @@
   "scripts": {
     "build": "microbundle",
     "prepare": "npm run build && husky",
+    "prepublishOnly": "npm run lint && npm test && npm run build",
     "lint": "eslint src test --max-warnings 0",
     "lint:fix": "eslint src test --fix",
     "test": "vitest run",
@@ -66,7 +67,19 @@
     "metadata",
     "npm",
     "package",
-    "llm.txt"
+    "llm.txt",
+    "cursor",
+    "ide",
+    "openrouter"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/prakhardubey2002/hayagriva-llm.git"
+  },
+  "homepage": "https://github.com/prakhardubey2002/hayagriva-llm#readme",
+  "bugs": {
+    "url": "https://github.com/prakhardubey2002/hayagriva-llm/issues"
+  },
+  "author": "prakhar_dubey (https://www.npmjs.com/~prakhar_dubey)"
 }

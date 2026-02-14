@@ -15,6 +15,7 @@ function formatExportLine(name: string, info: ExportMeta): string {
   return '- ' + parts.join(' ');
 }
 
+/** Consistent section order for crawler-friendly llm.package.txt. */
 export function buildTxtMetadata(meta: LLMPackageJson): string {
   const lines: string[] = [
     `Package: ${meta.name}`,
@@ -29,6 +30,22 @@ export function buildTxtMetadata(meta: LLMPackageJson): string {
     lines.push('Summary:', meta.summary, '');
   }
 
+  if (meta.whenToUse) {
+    lines.push('When to use:', meta.whenToUse, '');
+  }
+
+  if (meta.reasonToUse && meta.reasonToUse.length > 0) {
+    lines.push('Reason to use:');
+    for (const r of meta.reasonToUse) lines.push('- ' + r);
+    lines.push('');
+  }
+
+  if (meta.useCases && meta.useCases.length > 0) {
+    lines.push('Use cases:');
+    for (const u of meta.useCases) lines.push('- ' + u);
+    lines.push('');
+  }
+
   if (meta.sideEffects && meta.sideEffects.length > 0) {
     lines.push('Side effects:');
     for (const s of meta.sideEffects) lines.push('- ' + s);
@@ -37,6 +54,14 @@ export function buildTxtMetadata(meta: LLMPackageJson): string {
 
   if (meta.keywords && meta.keywords.length > 0) {
     lines.push('Keywords:', meta.keywords.join(', '), '');
+  }
+
+  if (meta.documentation) {
+    lines.push('', 'Documentation:', meta.documentation, '');
+  }
+
+  if (meta.relatedPackages && meta.relatedPackages.length > 0) {
+    lines.push('Related packages:', meta.relatedPackages.join(', '), '');
   }
 
   lines.push('Exports:');

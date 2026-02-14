@@ -25,7 +25,7 @@ export interface ExportsMap {
   [name: string]: ExportMeta;
 }
 
-/** Extended metadata for IDE/indexing (Cursor, Antigravity, etc.). */
+/** Extended metadata for IDE/indexing and crawlers (Cursor, Antigravity, etc.). */
 export interface LLMPackageJson {
   name: string;
   version: string;
@@ -36,6 +36,16 @@ export interface LLMPackageJson {
   sideEffects?: string[];
   /** Search/keyword hints. */
   keywords?: string[];
+  /** When to use this package (one paragraph; AI mode). */
+  whenToUse?: string;
+  /** Reasons to use (bullet-style; AI mode). */
+  reasonToUse?: string[];
+  /** Concrete use cases / scenarios (AI mode). */
+  useCases?: string[];
+  /** Documentation URL or short note (AI mode). */
+  documentation?: string;
+  /** Related packages (AI mode). */
+  relatedPackages?: string[];
   exports: ExportsMap;
   hooks: string[];
   frameworks: string[];
@@ -71,6 +81,11 @@ export interface AIRawResponse {
   summary?: string;
   sideEffects?: string[];
   keywords?: string[];
+  whenToUse?: string;
+  reasonToUse?: string[];
+  useCases?: string[];
+  documentation?: string;
+  relatedPackages?: string[];
   [key: string]: unknown;
 }
 

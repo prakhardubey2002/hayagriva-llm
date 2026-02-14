@@ -10,10 +10,10 @@ const config = {
   outDir: '../docs',
 
   // For GitHub Pages project site: https://<user>.github.io/<repo>/
-  url: 'https://your-username.github.io',
-  baseUrl: '/Hayagriva-LLM/',
-  organizationName: 'your-username',
-  projectName: 'Hayagriva-LLM',
+  url: 'https://prakhardubey2002.github.io',
+  baseUrl: '/hayagriva-llm/',
+  organizationName: 'prakhardubey2002',
+  projectName: 'hayagriva-llm',
 
   onBrokenLinks: 'warn',
   onBrokenMarkdownLinks: 'warn',
@@ -64,7 +64,7 @@ const config = {
             label: 'Docs',
           },
           {
-            href: 'https://github.com/your-username/Hayagriva-LLM',
+            href: 'https://github.com/prakhardubey2002/hayagriva-llm',
             label: 'GitHub',
             position: 'right',
           },
@@ -85,7 +85,7 @@ const config = {
           {
             title: 'More',
             items: [
-              { label: 'GitHub', href: 'https://github.com/your-username/Hayagriva-LLM' },
+              { label: 'GitHub', href: 'https://github.com/prakhardubey2002/hayagriva-llm' },
               { label: 'npm', href: 'https://www.npmjs.com/package/hayagriva-llm' },
             ],
           },

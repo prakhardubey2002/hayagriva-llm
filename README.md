@@ -1,14 +1,17 @@
 # hayagriva-llm
 
 [![npm version](https://img.shields.io/npm/v/hayagriva-llm.svg)](https://www.npmjs.com/package/hayagriva-llm)
+[![npm downloads](https://img.shields.io/npm/dw/hayagriva-llm.svg)](https://www.npmjs.com/package/hayagriva-llm)
+[![npm total downloads](https://img.shields.io/npm/dt/hayagriva-llm.svg)](https://www.npmjs.com/package/hayagriva-llm)
 [![Node.js Version](https://img.shields.io/node/v/hayagriva-llm)](https://nodejs.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![GitHub repo](https://img.shields.io/badge/GitHub-prakhardubey2002%2Fhayagriva--llm-blue)](https://github.com/prakhardubey2002/hayagriva-llm)
 
 **Structured LLM metadata for Node.js packages** — the first standard for machine-readable package context in the npm ecosystem. Generates `llm.package.json` and `llm.package.txt` for indexing, search, and IDE tooling (e.g. Cursor, Antigravity).
 
 📖 **Documentation:** Full docs are built with [Docusaurus](https://docusaurus.io/) and deployed to **GitHub Pages**. See [Deploying the docs](#deploying-the-docs) for setup. After deployment, the site is available at:
 
-**https://&lt;your-username&gt;.github.io/Hayagriva-LLM/**
+**https://prakhardubey2002.github.io/hayagriva-llm/**
 
 ---
 
@@ -294,7 +297,7 @@ The full documentation is built with **Docusaurus**. Source lives in `website/do
 2. **Enable GitHub Pages:** In the repo **Settings → Pages → Build and deployment → Source**, choose **Deploy from a branch**. Select branch **main** and folder **/docs**. Save.
 3. **Commit and push:** Commit the built `docs/` folder and push to `main`. The workflow [Build docs (for GitHub Pages /docs)](.github/workflows/deploy-docs.yml) can build Docusaurus to `docs/` and commit it on push to `main`, or you can run `npm run docs:build` locally and commit `docs/` yourself.
 
-The site will be at **https://&lt;your-username&gt;.github.io/Hayagriva-LLM/** (set `url` and `baseUrl` in `website/docusaurus.config.js` to match your repo).
+The site will be at **https://prakhardubey2002.github.io/hayagriva-llm/** (see `website/docusaurus.config.js`).
 
 ---
 
@@ -308,6 +311,19 @@ This repo uses [Husky](https://typicode.github.io/husky/) for pre-commit hooks. 
 4. **Size limit** — `npx size-limit` (checks `dist/cli.cjs` and `dist/cli.mjs` stay under 50 kB)
 
 Install once: `npm install`. The `prepare` script runs `husky` so the `.husky/pre-commit` hook is installed.
+
+---
+
+## Publishing to npm
+
+1. **Login** — `npm login` (create an account at [npmjs.com](https://www.npmjs.com/signup) if needed).
+2. **Publish** — From the package root run:
+   ```bash
+   npm publish
+   ```
+   `prepublishOnly` will run lint, tests, and build before publishing. Only the `dist/` folder is included (`files` in package.json); README and LICENSE are included by npm by default.
+
+Repository: [github.com/prakhardubey2002/hayagriva-llm](https://github.com/prakhardubey2002/hayagriva-llm) · npm: [hayagriva-llm](https://www.npmjs.com/package/hayagriva-llm). For a scoped package (e.g. `@your-org/hayagriva-llm`), set `"name": "@your-org/hayagriva-llm"` and run `npm publish --access public`.
 
 ---
 

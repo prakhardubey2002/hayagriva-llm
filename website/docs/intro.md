@@ -68,4 +68,4 @@ Copy `.env.example` to `.env` in your project and set these as needed.
 - [Schema](./schema) — Structure of `llm.package.json` and `llm.package.txt`.
 - [AI mode](./ai-mode) — Multi-step AI flow and guardrails.
 
-For using the package in your project, Husky, and GitHub Actions, see the [README in the repository](https://github.com/your-username/Hayagriva-LLM#readme) (replace `your-username` with your GitHub username).
+For using the package in your project, Husky, and GitHub Actions, see the [README in the repository](https://github.com/prakhardubey2002/hayagriva-llm#readme).

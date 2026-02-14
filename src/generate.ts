@@ -10,6 +10,16 @@ import { runAiMode } from './aiMode.js';
 import { buildJsonMetadata } from './buildJsonMetadata.js';
 import { buildTxtMetadata } from './buildTxtMetadata.js';
 import { getVersion } from './version.js';
+import { checkOpenRouterAuth } from './openrouter.js';
+import {
+  printAuthChecking,
+  printAuthSuccess,
+  printAuthFailure,
+  printRateLimited,
+  printAiModeHeader,
+  printStep,
+  printAiStepsDone,
+} from './ui.js';
 import type { GenerateOptions, PackageJsonLike, ExportsMap } from './types.js';
 import type { AIRawResponse, LLMPackageJson } from './types.js';
 
@@ -19,6 +29,7 @@ const PKG_NAME = 'hayagriva-llm';
 const GENERATED_KEYS = new Set([
   'name', 'version', 'description', 'exports', 'hooks', 'frameworks',
   'generatedBy', 'mode', 'summary', 'sideEffects', 'keywords',
+  'whenToUse', 'reasonToUse', 'useCases', 'documentation', 'relatedPackages',
 ]);
 
 function loadExistingMeta(jsonPath: string): LLMPackageJson | null {
@@ -49,6 +60,7 @@ function mergeWithExisting(newMeta: LLMPackageJson, existing: LLMPackageJson): L
 
 const KNOWN_AI_KEYS = new Set([
   'exports', 'hooks', 'frameworks', 'summary', 'sideEffects', 'keywords',
+  'whenToUse', 'reasonToUse', 'useCases', 'documentation', 'relatedPackages',
 ]);
 
 function getExtrasFromAIResponse(result: AIRawResponse): Record<string, unknown> {
@@ -102,6 +114,11 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
   let summary: string | undefined;
   let sideEffects: string[] | undefined;
   let keywords: string[] | undefined;
+  let whenToUse: string | undefined;
+  let reasonToUse: string[] | undefined;
+  let useCases: string[] | undefined;
+  let documentation: string | undefined;
+  let relatedPackages: string[] | undefined;
   let extras: Record<string, unknown> = {};
 
   if (mode === 'static') {
@@ -117,6 +134,27 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
     if (!key || key.trim() === '') {
       throw new Error('AI mode requires --api-key or OPEN_ROUTER_API_KEY (or OPENROUTER_API_KEY)');
     }
+    printAiModeHeader();
+    printAuthChecking();
+    let authResult: Awaited<ReturnType<typeof checkOpenRouterAuth>>;
+    try {
+      authResult = await checkOpenRouterAuth(key.trim(), model);
+    } catch (e) {
+      printAuthFailure(e instanceof Error ? e.message : String(e));
+      throw e;
+    }
+    if (!authResult.ok) {
+      if (authResult.reason === 'rate_limited') {
+        printRateLimited(authResult.message);
+        throw new Error('OpenRouter model rate-limited (429). Retry later or use another model (OPEN_ROUTER_MODEL).');
+      }
+      printAuthFailure('invalid or unauthorized API key');
+      throw new Error('OpenRouter API key invalid or unauthorized (401)');
+    }
+    printAuthSuccess();
+    const onProgress = (report: { current: number; total: number; message: string }) => {
+      printStep(report.current, report.total, report.message);
+    };
     const result = await runAiMode(
       {
         packageJsonContent: JSON.stringify(packageJson, null, 2),
@@ -125,14 +163,21 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
         existingLlmPackageJson: existing ? JSON.stringify(existing, null, 2) : undefined,
       },
       key.trim(),
-      model
+      model,
+      onProgress
     );
+    printAiStepsDone();
     exports = result.exports;
     hooks = result.hooks ?? [];
     frameworks = result.frameworks ?? [];
     summary = result.summary;
     sideEffects = result.sideEffects;
     keywords = result.keywords;
+    whenToUse = result.whenToUse;
+    reasonToUse = result.reasonToUse;
+    useCases = result.useCases;
+    documentation = result.documentation;
+    relatedPackages = result.relatedPackages;
     extras = getExtrasFromAIResponse(result);
   }
 
@@ -147,6 +192,11 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
     summary,
     sideEffects,
     keywords,
+    whenToUse,
+    reasonToUse,
+    useCases,
+    documentation,
+    relatedPackages,
     extras: Object.keys(extras).length > 0 ? extras : undefined,
   });
 

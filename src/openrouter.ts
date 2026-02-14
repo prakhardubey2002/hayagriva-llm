@@ -6,6 +6,38 @@ import type { ExportMeta, ExportsMap } from './types.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+/** Result of auth/availability check: ok, unauthorized (401), or rate-limited (429). */
+export type AuthCheckResult = { ok: true } | { ok: false; reason: 'unauthorized' } | { ok: false; reason: 'rate_limited'; message: string };
+
+/**
+ * Minimal request to validate API key and model availability.
+ * Returns { ok: true }, { ok: false, reason: 'unauthorized' } on 401, or { ok: false, reason: 'rate_limited', message } on 429.
+ */
+export async function checkOpenRouterAuth(apiKey: string, model: string): Promise<AuthCheckResult> {
+  const res = await fetch(OPENROUTER_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model,
+      messages: [{ role: 'user', content: 'x' }],
+      max_tokens: 1,
+    }),
+  });
+  if (res.status === 401) return { ok: false, reason: 'unauthorized' };
+  if (res.status === 429) {
+    const text = await res.text();
+    return { ok: false, reason: 'rate_limited', message: text.slice(0, 400) };
+  }
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`OpenRouter API error ${res.status}: ${text.slice(0, 300)}`);
+  }
+  return { ok: true };
+}
+
 export interface OpenRouterOptions {
   apiKey: string;
   model: string;
@@ -83,7 +115,7 @@ export async function callOpenRouterRaw(options: OpenRouterOptions): Promise<unk
   const rawJson = stripMarkdownJson(content);
   try {
     return JSON.parse(rawJson) as unknown;
-  } catch (parseErr) {
+  } catch {
     const snippet = rawJson.slice(0, 500);
     const hint = rawJson.includes('```') ? ' (Response may be in a code block; strip failed.)' : '';
     throw new Error(
@@ -116,6 +148,11 @@ export interface PackageOverview {
   sideEffects: string[];
   keywords: string[];
   frameworks: string[];
+  whenToUse?: string;
+  reasonToUse?: string[];
+  useCases?: string[];
+  documentation?: string;
+  relatedPackages?: string[];
 }
 
 function isStringArray(x: unknown): x is string[] {
@@ -123,7 +160,8 @@ function isStringArray(x: unknown): x is string[] {
 }
 
 /**
- * Guardrail: Step 1 response must have exactly summary (string), sideEffects, keywords, frameworks (string[]).
+ * Guardrail: Step 1 response must have summary (string), sideEffects, keywords, frameworks (string[]).
+ * Optional: whenToUse, reasonToUse, useCases, documentation, relatedPackages.
  */
 export function validatePackageOverview(parsed: unknown): PackageOverview {
   if (parsed === null || typeof parsed !== 'object') {
@@ -142,12 +180,18 @@ export function validatePackageOverview(parsed: unknown): PackageOverview {
   if (!isStringArray(o.frameworks)) {
     throw new Error('"frameworks" must be an array of strings');
   }
-  return {
+  const out: PackageOverview = {
     summary: o.summary.trim(),
     sideEffects: o.sideEffects,
     keywords: o.keywords,
     frameworks: o.frameworks,
   };
+  if (typeof o.whenToUse === 'string') out.whenToUse = o.whenToUse.trim();
+  if (isStringArray(o.reasonToUse)) out.reasonToUse = o.reasonToUse;
+  if (isStringArray(o.useCases)) out.useCases = o.useCases;
+  if (typeof o.documentation === 'string') out.documentation = o.documentation.trim();
+  if (isStringArray(o.relatedPackages)) out.relatedPackages = o.relatedPackages;
+  return out;
 }
 
 function isExportKind(s: string): s is ExportMeta['type'] {

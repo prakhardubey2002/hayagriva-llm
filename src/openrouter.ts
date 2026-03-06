@@ -38,11 +38,22 @@ export async function checkOpenRouterAuth(apiKey: string, model: string): Promis
   return { ok: true };
 }
 
+/** Token usage from OpenRouter API response. */
+export interface TokenUsage {
+  prompt_tokens: number;
+  completion_tokens: number;
+  total_tokens: number;
+}
+
 export interface OpenRouterOptions {
   apiKey: string;
   model: string;
   systemPrompt: string;
   userContent: string;
+  /** Called with usage from the API response when present (for observability). */
+  onUsage?: (usage: TokenUsage) => void;
+  /** Called with response metadata (usage + sizes) for per-call analytics. */
+  onMeta?: (meta: { usage?: TokenUsage; responseChars: number; rawJsonChars: number }) => void;
 }
 
 /**
@@ -79,6 +90,20 @@ export function stripMarkdownJson(raw: string): string {
   return trimmed;
 }
 
+function normalizeJsonForParsing(raw: string): string {
+  let s = raw.trim();
+  // Replace “smart quotes” with ASCII quotes (common model formatting issue)
+  s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+  // Remove trailing commas in objects/arrays: { "a": 1, } or [1,2,]
+  s = s.replace(/,\s*([}\]])/g, '$1');
+  return s;
+}
+
+function parseJsonWithSmallRepairs(rawJson: string): unknown {
+  const normalized = normalizeJsonForParsing(rawJson);
+  return JSON.parse(normalized) as unknown;
+}
+
 /**
  * Low-level: send request, return parsed JSON (no validation).
  * Throws on HTTP error, missing content, or invalid JSON.
@@ -106,15 +131,31 @@ export async function callOpenRouterRaw(options: OpenRouterOptions): Promise<unk
     throw new Error(`OpenRouter API error ${res.status}: ${text.slice(0, 500)}`);
   }
 
-  const data = (await res.json()) as { choices?: Array<{ message?: { content?: string } }> };
+  const data = (await res.json()) as {
+    choices?: Array<{ message?: { content?: string } }>;
+    usage?: { prompt_tokens?: number; completion_tokens?: number; total_tokens?: number };
+  };
   const content = data?.choices?.[0]?.message?.content;
   if (typeof content !== 'string') {
     throw new Error('OpenRouter response missing choices[0].message.content');
   }
+  const u = data?.usage;
+  const usage: TokenUsage | undefined =
+    u && typeof u.prompt_tokens === 'number' && typeof u.completion_tokens === 'number'
+      ? {
+        prompt_tokens: u.prompt_tokens,
+        completion_tokens: u.completion_tokens,
+        total_tokens: typeof u.total_tokens === 'number' ? u.total_tokens : u.prompt_tokens + u.completion_tokens,
+      }
+      : undefined;
+  if (usage && options.onUsage) options.onUsage(usage);
 
   const rawJson = stripMarkdownJson(content);
+  if (options.onMeta) {
+    options.onMeta({ usage, responseChars: content.length, rawJsonChars: rawJson.length });
+  }
   try {
-    return JSON.parse(rawJson) as unknown;
+    return parseJsonWithSmallRepairs(rawJson);
   } catch {
     const snippet = rawJson.slice(0, 500);
     const hint = rawJson.includes('```') ? ' (Response may be in a code block; strip failed.)' : '';
@@ -153,6 +194,7 @@ export interface PackageOverview {
   useCases?: string[];
   documentation?: string;
   relatedPackages?: string[];
+  extensions?: Record<string, unknown>;
 }
 
 function isStringArray(x: unknown): x is string[] {
@@ -191,6 +233,7 @@ export function validatePackageOverview(parsed: unknown): PackageOverview {
   if (isStringArray(o.useCases)) out.useCases = o.useCases;
   if (typeof o.documentation === 'string') out.documentation = o.documentation.trim();
   if (isStringArray(o.relatedPackages)) out.relatedPackages = o.relatedPackages;
+  if (o.extensions && typeof o.extensions === 'object') out.extensions = o.extensions as Record<string, unknown>;
   return out;
 }
 

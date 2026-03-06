@@ -1,5 +1,5 @@
 Package: hayagriva-llm
-Version: 1.0.0
+Version: 1.2.0
 
 Description:
 Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt
@@ -17,6 +17,7 @@ Reason to use:
 - Integrates with existing package.json workflows
 - Supports TypeScript analysis for accurate type information
 - Provides CLI interface for easy integration into build processes
+- Offers both static and AI-powered analysis modes
 
 Use cases:
 - Generating metadata for npm packages to improve AI assistant responses
@@ -25,6 +26,7 @@ Use cases:
 - Providing structured data for AI code completion tools
 - Documenting package functionality for machine learning model training
 - Automating metadata generation in CI/CD pipelines
+- Creating local observability dashboards for metadata analysis
 
 Side effects:
 - reads package.json
@@ -32,17 +34,127 @@ Side effects:
 - writes llm.package.json and llm.package.txt files
 
 Keywords:
-llm, metadata, npm, package, llm.txt, cli, typescript, ai, documentation, package-management, code-analysis, ai-assistants, automated-documentation
+llm, metadata, npm, package, llm.txt, cli, typescript, ai, documentation, package-management, code-analysis, ai-assistants, automated-documentation, hayagriva
 
 
 Documentation:
 See README
 
 Related packages:
-commander, dotenv, ts-morph, vitest, microbundle, eslint
+commander, dotenv, ts-morph, vitest, microbundle, eslint, openrouter
+
+Capabilities:
+- Analyzes package.json and source code
+- Generates llm.package.json and llm.package.txt files
+- Supports static TypeScript analysis via ts-morph
+- Offers AI-powered analysis using OpenRouter API
+- Provides CLI with multiple commands (generate, dashboard)
+- Includes local observability dashboard
+- Handles both CommonJS and ESM modules
+- Supports environment variable configuration
+- Provides verbose logging for debugging
+- Validates command-line arguments and options
+
+Configuration:
+- OPEN_ROUTER_MODEL environment variable
+- HAYAGRIVA_LLM_MODEL environment variable
+- OPENROUTER_API_KEY environment variable
+- Command-line options for mode, API key, model selection
+- Port configuration for dashboard server
+
+Integration:
+- Compatible with npm package workflows
+- Supports CI/CD pipeline integration
+- TypeScript project analysis
+- Command-line tool for scripting
+- Environment variable configuration
+- Local dashboard for metadata inspection
+
+Observability:
+- Dashboard server at localhost:4177 (configurable)
+- Verbose logging option for debugging
+- Error reporting with exit codes
+- Process lifecycle logging
+
+Security notes:
+- Stores OpenRouter API key in environment variables
+- Dashboard runs on localhost only
+- No network requests except for AI analysis mode
+- Reads package files from current working directory
+- Writes metadata files to package directory
+
+Limitations / non-goals:
+- Requires Node.js 18+
+- AI mode requires OpenRouter API key
+- Limited to analyzing Node.js packages
+- Static analysis may miss dynamic behavior
+- Dashboard reads from .hayagriva-llm/ directory only
+
+Examples:
+- hayagriva-llm generate --mode static
+- hayagriva-llm generate --mode ai --api-key $OPENROUTER_API_KEY
+- hayagriva-llm dashboard --port 4177
+- hayagriva-llm --help
+
+Extensions (JSON):
+{
+  "capabilities": [
+    "Analyzes package.json and source code",
+    "Generates llm.package.json and llm.package.txt files",
+    "Supports static TypeScript analysis via ts-morph",
+    "Offers AI-powered analysis using OpenRouter API",
+    "Provides CLI with multiple commands (generate, dashboard)",
+    "Includes local observability dashboard",
+    "Handles both CommonJS and ESM modules",
+    "Supports environment variable configuration",
+    "Provides verbose logging for debugging",
+    "Validates command-line arguments and options"
+  ],
+  "configuration": [
+    "OPEN_ROUTER_MODEL environment variable",
+    "HAYAGRIVA_LLM_MODEL environment variable",
+    "OPENROUTER_API_KEY environment variable",
+    "Command-line options for mode, API key, model selection",
+    "Port configuration for dashboard server"
+  ],
+  "limitations": [
+    "Requires Node.js 18+",
+    "AI mode requires OpenRouter API key",
+    "Limited to analyzing Node.js packages",
+    "Static analysis may miss dynamic behavior",
+    "Dashboard reads from .hayagriva-llm/ directory only"
+  ],
+  "security": [
+    "Stores OpenRouter API key in environment variables",
+    "Dashboard runs on localhost only",
+    "No network requests except for AI analysis mode",
+    "Reads package files from current working directory",
+    "Writes metadata files to package directory"
+  ],
+  "observability": [
+    "Dashboard server at localhost:4177 (configurable)",
+    "Verbose logging option for debugging",
+    "Error reporting with exit codes",
+    "Process lifecycle logging"
+  ],
+  "integration": [
+    "Compatible with npm package workflows",
+    "Supports CI/CD pipeline integration",
+    "TypeScript project analysis",
+    "Command-line tool for scripting",
+    "Environment variable configuration",
+    "Local dashboard for metadata inspection"
+  ],
+  "examples": [
+    "hayagriva-llm generate --mode static",
+    "hayagriva-llm generate --mode ai --api-key $OPENROUTER_API_KEY",
+    "hayagriva-llm dashboard --port 4177",
+    "hayagriva-llm --help"
+  ]
+}
 
 Exports:
-- cli : Starts the Hayagriva CLI, parsing command-line arguments and dispatching to the appropriate command handler. It initializes the application state, loads configuration, and runs the selected operation such as serving documentation or processing files. — params: args?: string[] (optional command-line arguments, defaults to process.argv.slice(2)) — returns: Promise<void> (resolves when the CLI process completes) — side effect — e.g. cli(['serve', '--port', '3000'])
+- cli : Starts the Hayagriva CLI, parsing command-line arguments and dispatching to the appropriate command handler. It initializes the application state, loads configuration from environment variables, and runs the selected operation such as generating LLM metadata or starting the observability dashboard. — params: args?: string[] (optional command-line arguments, defaults to process.argv.slice(2)) — returns: Promise<void> (resolves when the CLI process completes) — side effect — e.g. cli(['generate', '--mode', 'static'])
 
 Frameworks:
 node

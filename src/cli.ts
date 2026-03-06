@@ -10,6 +10,7 @@ import { Command } from 'commander';
 import { generate } from './generate.js';
 import { getVersion } from './version.js';
 import { DEFAULT_MODEL } from './types.js';
+import { startDashboardServer } from './dashboard.js';
 
 const program = new Command();
 
@@ -47,6 +48,27 @@ program
         includeSrc: Boolean(opts.includeSrc),
         verbose: Boolean(opts.verbose),
       });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Error:', message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('dashboard')
+  .description('Start local observability dashboard (reads .hayagriva-llm/)')
+  .option('--port <port>', 'Port to bind (localhost)', '4177')
+  .action(async (opts: { port: string }) => {
+    const port = Number(opts.port);
+    if (!Number.isFinite(port) || port <= 0) {
+      console.error('Error: --port must be a valid number');
+      process.exit(1);
+    }
+    try {
+      const { url } = await startDashboardServer(process.cwd(), port);
+      console.log('Dashboard running at:', url);
+      console.log('Press Ctrl+C to stop.');
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Error:', message);

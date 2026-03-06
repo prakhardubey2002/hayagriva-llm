@@ -11,6 +11,7 @@ import { buildJsonMetadata } from './buildJsonMetadata.js';
 import { buildTxtMetadata } from './buildTxtMetadata.js';
 import { getVersion } from './version.js';
 import { checkOpenRouterAuth } from './openrouter.js';
+import { appendRunJsonl, newRunId, writeLastRun, type AiCallAnalytics, type GenerateRunAnalytics } from './observability.js';
 import {
   printAuthChecking,
   printAuthSuccess,
@@ -24,13 +25,6 @@ import type { GenerateOptions, PackageJsonLike, ExportsMap } from './types.js';
 import type { AIRawResponse, LLMPackageJson } from './types.js';
 
 const PKG_NAME = 'hayagriva-llm';
-
-/** Keys we always generate; any other key in existing file is preserved when merging. */
-const GENERATED_KEYS = new Set([
-  'name', 'version', 'description', 'exports', 'hooks', 'frameworks',
-  'generatedBy', 'mode', 'summary', 'sideEffects', 'keywords',
-  'whenToUse', 'reasonToUse', 'useCases', 'documentation', 'relatedPackages',
-]);
 
 function loadExistingMeta(jsonPath: string): LLMPackageJson | null {
   if (!existsSync(jsonPath)) return null;
@@ -46,14 +40,14 @@ function loadExistingMeta(jsonPath: string): LLMPackageJson | null {
 
 /**
  * Merge new metadata with existing: new content wins for known sections;
- * any extra keys from existing are preserved.
+ * existing content is preserved when new omits optional keys.
  */
 function mergeWithExisting(newMeta: LLMPackageJson, existing: LLMPackageJson): LLMPackageJson {
-  const merged = { ...newMeta };
-  for (const key of Object.keys(existing)) {
-    if (!GENERATED_KEYS.has(key)) {
-      (merged as Record<string, unknown>)[key] = (existing as Record<string, unknown>)[key];
-    }
+  const merged: LLMPackageJson = { ...(existing as LLMPackageJson), ...(newMeta as LLMPackageJson) };
+  const a = existing.extensions;
+  const b = newMeta.extensions;
+  if (a && typeof a === 'object' && b && typeof b === 'object') {
+    merged.extensions = { ...(a as Record<string, unknown>), ...(b as Record<string, unknown>) };
   }
   return merged;
 }
@@ -61,6 +55,9 @@ function mergeWithExisting(newMeta: LLMPackageJson, existing: LLMPackageJson): L
 const KNOWN_AI_KEYS = new Set([
   'exports', 'hooks', 'frameworks', 'summary', 'sideEffects', 'keywords',
   'whenToUse', 'reasonToUse', 'useCases', 'documentation', 'relatedPackages',
+  'extensions',
+  // observability-only keys (never written into llm.package.json)
+  'usage', 'inputChars', 'batches',
 ]);
 
 function getExtrasFromAIResponse(result: AIRawResponse): Record<string, unknown> {
@@ -97,11 +94,34 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
   const existing = loadExistingMeta(jsonPath);
   if (existing) log('Using existing llm.package.json as reference');
 
+  const run: GenerateRunAnalytics = {
+    id: newRunId(),
+    command: 'generate',
+    cwd,
+    startedAt: new Date().toISOString(),
+    node: { version: process.version, platform: process.platform, arch: process.arch },
+    package: { name: 'unknown', version: '0.0.0', entryPath: null },
+    flags: {
+      mode,
+      includeSrc: Boolean(includeSrc),
+      verbose: Boolean(verbose),
+      apiKeyProvided: Boolean(apiKey && apiKey.trim() !== ''),
+      model,
+    },
+  };
+
   log('Loading package.json');
   const packageJson = loadPackageJson(cwd);
+  run.package = {
+    name: packageJson.name ?? 'unknown',
+    version: packageJson.version ?? '0.0.0',
+    description: typeof packageJson.description === 'string' ? packageJson.description : undefined,
+    entryPath: null,
+  };
 
   log('Detecting entry file');
   const entryPath = detectEntryFile(packageJson, cwd);
+  run.package.entryPath = entryPath;
   if (!entryPath) {
     log('No entry file found; exports will be empty in static mode.');
   } else {
@@ -119,66 +139,115 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
   let useCases: string[] | undefined;
   let documentation: string | undefined;
   let relatedPackages: string[] | undefined;
+  let extensions: Record<string, unknown> | undefined;
   let extras: Record<string, unknown> = {};
 
-  if (mode === 'static') {
-    if (entryPath) {
-      exports = extractStaticExports(entryPath);
-      hooks = getHooksFromExports(exports);
-    } else {
-      exports = {};
-      hooks = [];
-    }
-  } else {
-    const key = apiKey ?? process.env.OPEN_ROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY;
-    if (!key || key.trim() === '') {
-      throw new Error('AI mode requires --api-key or OPEN_ROUTER_API_KEY (or OPENROUTER_API_KEY)');
-    }
-    printAiModeHeader();
-    printAuthChecking();
-    let authResult: Awaited<ReturnType<typeof checkOpenRouterAuth>>;
-    try {
-      authResult = await checkOpenRouterAuth(key.trim(), model);
-    } catch (e) {
-      printAuthFailure(e instanceof Error ? e.message : String(e));
-      throw e;
-    }
-    if (!authResult.ok) {
-      if (authResult.reason === 'rate_limited') {
-        printRateLimited(authResult.message);
-        throw new Error('OpenRouter model rate-limited (429). Retry later or use another model (OPEN_ROUTER_MODEL).');
+  try {
+    if (mode === 'static') {
+      if (entryPath) {
+        exports = extractStaticExports(entryPath);
+        hooks = getHooksFromExports(exports);
+      } else {
+        exports = {};
+        hooks = [];
       }
-      printAuthFailure('invalid or unauthorized API key');
-      throw new Error('OpenRouter API key invalid or unauthorized (401)');
+    } else {
+      const key = apiKey ?? process.env.OPEN_ROUTER_API_KEY ?? process.env.OPENROUTER_API_KEY;
+      if (!key || key.trim() === '') {
+        throw new Error('AI mode requires --api-key or OPEN_ROUTER_API_KEY (or OPENROUTER_API_KEY)');
+      }
+      printAiModeHeader();
+      printAuthChecking();
+      let authResult: Awaited<ReturnType<typeof checkOpenRouterAuth>>;
+      try {
+        authResult = await checkOpenRouterAuth(key.trim(), model);
+      } catch (e) {
+        printAuthFailure(e instanceof Error ? e.message : String(e));
+        throw e;
+      }
+      if (!authResult.ok) {
+        if (authResult.reason === 'rate_limited') {
+          printRateLimited(authResult.message);
+          throw new Error('OpenRouter model rate-limited (429). Retry later or use another model (OPEN_ROUTER_MODEL).');
+        }
+        printAuthFailure('invalid or unauthorized API key');
+        throw new Error('OpenRouter API key invalid or unauthorized (401)');
+      }
+      printAuthSuccess();
+
+      // Prefer local export discovery so step counts are stable and we reduce AI overhead.
+      let exportNames: string[] = [];
+      if (entryPath) {
+        try {
+          const staticExports = extractStaticExports(entryPath);
+          exportNames = Object.keys(staticExports);
+        } catch {
+          exportNames = [];
+        }
+      }
+
+      const onProgress = (report: { current: number; total: number; message: string }) => {
+        printStep(report.current, report.total, report.message);
+      };
+
+      const aiCalls: AiCallAnalytics[] = [];
+
+      const result = await runAiMode(
+        {
+          packageJsonContent: JSON.stringify(packageJson, null, 2),
+          entryPath,
+          includeSrc,
+          exportNames,
+          existingLlmPackageJson: existing ? JSON.stringify(existing, null, 2) : undefined,
+        },
+        key.trim(),
+        model,
+        onProgress,
+        (c) => {
+          aiCalls.push({
+            step: c.step,
+            startedAt: c.startedAt,
+            finishedAt: c.finishedAt,
+            durationMs: c.durationMs,
+            model: c.model,
+            systemPromptChars: c.systemPromptChars,
+            userContentChars: c.userContentChars,
+            responseChars: c.responseChars,
+            usage: c.usage,
+          });
+        }
+      );
+      printAiStepsDone();
+
+      run.ai = {
+        calls: aiCalls,
+        totals: result.usage,
+        inputChars: result.inputChars,
+        batches: result.batches,
+      };
+
+      exports = result.exports;
+      hooks = result.hooks ?? [];
+      frameworks = result.frameworks ?? [];
+      summary = result.summary;
+      sideEffects = result.sideEffects;
+      keywords = result.keywords;
+      whenToUse = result.whenToUse;
+      reasonToUse = result.reasonToUse;
+      useCases = result.useCases;
+      documentation = result.documentation;
+      relatedPackages = result.relatedPackages;
+      extensions = typeof result.extensions === 'object' && result.extensions ? (result.extensions as Record<string, unknown>) : undefined;
+      extras = getExtrasFromAIResponse(result);
     }
-    printAuthSuccess();
-    const onProgress = (report: { current: number; total: number; message: string }) => {
-      printStep(report.current, report.total, report.message);
-    };
-    const result = await runAiMode(
-      {
-        packageJsonContent: JSON.stringify(packageJson, null, 2),
-        entryPath,
-        includeSrc,
-        existingLlmPackageJson: existing ? JSON.stringify(existing, null, 2) : undefined,
-      },
-      key.trim(),
-      model,
-      onProgress
-    );
-    printAiStepsDone();
-    exports = result.exports;
-    hooks = result.hooks ?? [];
-    frameworks = result.frameworks ?? [];
-    summary = result.summary;
-    sideEffects = result.sideEffects;
-    keywords = result.keywords;
-    whenToUse = result.whenToUse;
-    reasonToUse = result.reasonToUse;
-    useCases = result.useCases;
-    documentation = result.documentation;
-    relatedPackages = result.relatedPackages;
-    extras = getExtrasFromAIResponse(result);
+  } catch (e) {
+    run.ok = false;
+    run.finishedAt = new Date().toISOString();
+    run.durationMs = Date.now() - Date.parse(run.startedAt);
+    run.error = { message: e instanceof Error ? e.message : String(e) };
+    writeLastRun(cwd, run);
+    appendRunJsonl(cwd, run);
+    throw e;
   }
 
   const generatedBy = `${PKG_NAME}@${getVersion()}`;
@@ -197,6 +266,7 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
     useCases,
     documentation,
     relatedPackages,
+    extensions,
     extras: Object.keys(extras).length > 0 ? extras : undefined,
   });
 
@@ -214,4 +284,13 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
     console.log('Created llm.package.txt');
   }
   log('Paths: ' + jsonPath + ', ' + txtPath);
+
+  run.ok = true;
+  run.finishedAt = new Date().toISOString();
+  run.durationMs = Date.now() - Date.parse(run.startedAt);
+  run.outputs = { jsonPath, txtPath, action: existing ? 'updated' : 'created' };
+  writeLastRun(cwd, run);
+  appendRunJsonl(cwd, run);
+
+  console.log(`Dashboard: run "hayagriva-llm dashboard" (serves ${resolve(cwd, '.hayagriva-llm')})`);
 }

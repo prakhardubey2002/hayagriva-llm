@@ -46,6 +46,8 @@ export interface LLMPackageJson {
   documentation?: string;
   /** Related packages (AI mode). */
   relatedPackages?: string[];
+  /** Optional extensibility container for additional crawler/IDE metadata (AI mode). */
+  extensions?: Record<string, unknown>;
   exports: ExportsMap;
   hooks: string[];
   frameworks: string[];
@@ -86,6 +88,13 @@ export interface AIRawResponse {
   useCases?: string[];
   documentation?: string;
   relatedPackages?: string[];
+  extensions?: Record<string, unknown>;
+  /** Optional: token usage from provider (for observability only). */
+  usage?: { prompt_tokens: number; completion_tokens: number; total_tokens: number };
+  /** Optional: size of input (chars) for observability. */
+  inputChars?: number;
+  /** Optional: batching details for observability. */
+  batches?: { size: number; batchCount: number };
   [key: string]: unknown;
 }
 

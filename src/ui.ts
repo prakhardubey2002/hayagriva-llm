@@ -64,10 +64,12 @@ export function printRateLimited(message?: string): void {
  */
 export function printStep(current: number, total: number, message: string): void {
   const circle = circleProgress(current, total);
-  const stepLabel = `${blue}Step ${current}/${total}${reset}`;
+  const stepLabel =
+    current <= 0 || total <= 0 ? `${magenta}Preflight${reset}` : `${blue}Step ${current}/${total}${reset}`;
   const msg = `${cyan}${message}${reset}`;
-  const countLabel = `${dim}${current}/${total} done${reset}`;
-  console.error(`  ${stepLabel}  ${msg}  ${circle}  ${countLabel}`);
+  const countLabel =
+    current <= 0 || total <= 0 ? `${dim}${reset}` : `${dim}${current}/${total} done${reset}`;
+  console.error(`  ${stepLabel}  ${msg}  ${circle}  ${countLabel}`.trimEnd());
 }
 
 /**

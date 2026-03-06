@@ -1,23 +1,25 @@
 {
   "name": "hayagriva-llm",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
   "exports": {
     "cli": {
       "type": "function",
-      "description": "Starts the Hayagriva CLI, parsing command-line arguments and dispatching to the appropriate command handler. It initializes the application state, loads configuration, and runs the selected operation such as serving documentation or processing files.",
+      "description": "Starts the Hayagriva CLI, parsing command-line arguments and dispatching to the appropriate command handler. It initializes the application state, loads configuration from environment variables, and runs the selected operation such as generating LLM metadata or starting the observability dashboard.",
       "hook": false,
       "params": "args?: string[] (optional command-line arguments, defaults to process.argv.slice(2))",
       "returns": "Promise<void> (resolves when the CLI process completes)",
       "sideEffect": true,
-      "example": "cli(['serve', '--port', '3000'])"
+      "example": "cli(['generate', '--mode', 'static'])",
+      "stability": "stable",
+      "notes": "Handles both synchronous and asynchronous operations, exits with appropriate status codes on errors"
     }
   },
   "hooks": [],
   "frameworks": [
     "node"
   ],
-  "generatedBy": "hayagriva-llm@1.0.0",
+  "generatedBy": "hayagriva-llm@1.2.0",
   "mode": "ai",
   "summary": "Hayagriva-llm is a CLI tool that generates structured LLM metadata files (llm.package.json and llm.package.txt) for Node.js packages. It analyzes package manifests and source code to create comprehensive AI-readable descriptions of package functionality, helping AI systems better understand and interact with npm packages. The tool integrates seamlessly with existing package.json workflows and supports TypeScript analysis for accurate type information.",
   "sideEffects": [
@@ -38,7 +40,8 @@
     "package-management",
     "code-analysis",
     "ai-assistants",
-    "automated-documentation"
+    "automated-documentation",
+    "hayagriva"
   ],
   "whenToUse": "Use Hayagriva-llm when you want to make your Node.js package more discoverable and understandable by AI systems. It's particularly valuable for package authors who want their libraries to be properly interpreted by AI assistants, documentation generators, or automated code analysis tools. Choose this package when you need to generate standardized metadata that describes your package's functionality in a structured format that AI systems can parse and utilize.",
   "reasonToUse": [
@@ -47,7 +50,8 @@
     "Creates both JSON and text format descriptions",
     "Integrates with existing package.json workflows",
     "Supports TypeScript analysis for accurate type information",
-    "Provides CLI interface for easy integration into build processes"
+    "Provides CLI interface for easy integration into build processes",
+    "Offers both static and AI-powered analysis modes"
   ],
   "useCases": [
     "Generating metadata for npm packages to improve AI assistant responses",
@@ -55,7 +59,8 @@
     "Enhancing package searchability in AI-powered code repositories",
     "Providing structured data for AI code completion tools",
     "Documenting package functionality for machine learning model training",
-    "Automating metadata generation in CI/CD pipelines"
+    "Automating metadata generation in CI/CD pipelines",
+    "Creating local observability dashboards for metadata analysis"
   ],
   "documentation": "See README",
   "relatedPackages": [
@@ -64,6 +69,62 @@
     "ts-morph",
     "vitest",
     "microbundle",
-    "eslint"
-  ]
+    "eslint",
+    "openrouter"
+  ],
+  "extensions": {
+    "capabilities": [
+      "Analyzes package.json and source code",
+      "Generates llm.package.json and llm.package.txt files",
+      "Supports static TypeScript analysis via ts-morph",
+      "Offers AI-powered analysis using OpenRouter API",
+      "Provides CLI with multiple commands (generate, dashboard)",
+      "Includes local observability dashboard",
+      "Handles both CommonJS and ESM modules",
+      "Supports environment variable configuration",
+      "Provides verbose logging for debugging",
+      "Validates command-line arguments and options"
+    ],
+    "configuration": [
+      "OPEN_ROUTER_MODEL environment variable",
+      "HAYAGRIVA_LLM_MODEL environment variable",
+      "OPENROUTER_API_KEY environment variable",
+      "Command-line options for mode, API key, model selection",
+      "Port configuration for dashboard server"
+    ],
+    "limitations": [
+      "Requires Node.js 18+",
+      "AI mode requires OpenRouter API key",
+      "Limited to analyzing Node.js packages",
+      "Static analysis may miss dynamic behavior",
+      "Dashboard reads from .hayagriva-llm/ directory only"
+    ],
+    "security": [
+      "Stores OpenRouter API key in environment variables",
+      "Dashboard runs on localhost only",
+      "No network requests except for AI analysis mode",
+      "Reads package files from current working directory",
+      "Writes metadata files to package directory"
+    ],
+    "observability": [
+      "Dashboard server at localhost:4177 (configurable)",
+      "Verbose logging option for debugging",
+      "Error reporting with exit codes",
+      "Process lifecycle logging"
+    ],
+    "integration": [
+      "Compatible with npm package workflows",
+      "Supports CI/CD pipeline integration",
+      "TypeScript project analysis",
+      "Command-line tool for scripting",
+      "Environment variable configuration",
+      "Local dashboard for metadata inspection"
+    ],
+    "examples": [
+      "hayagriva-llm generate --mode static",
+      "hayagriva-llm generate --mode ai --api-key $OPENROUTER_API_KEY",
+      "hayagriva-llm dashboard --port 4177",
+      "hayagriva-llm --help"
+    ]
+  }
 }

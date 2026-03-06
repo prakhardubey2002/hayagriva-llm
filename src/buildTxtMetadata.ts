@@ -4,6 +4,16 @@
 
 import type { LLMPackageJson, ExportMeta } from './types.js';
 
+function isStringArray(x: unknown): x is string[] {
+  return Array.isArray(x) && x.every((v) => typeof v === 'string');
+}
+
+function stringifyWithLimit(value: unknown, limitChars = 20000): string {
+  const s = JSON.stringify(value, null, 2) ?? '';
+  if (s.length <= limitChars) return s;
+  return s.slice(0, limitChars) + '\n…(truncated)…';
+}
+
 function formatExportLine(name: string, info: ExportMeta): string {
   const parts: string[] = [name];
   if (info.hook) parts.push('(Hook)');
@@ -62,6 +72,58 @@ export function buildTxtMetadata(meta: LLMPackageJson): string {
 
   if (meta.relatedPackages && meta.relatedPackages.length > 0) {
     lines.push('Related packages:', meta.relatedPackages.join(', '), '');
+  }
+
+  if (meta.extensions && typeof meta.extensions === 'object') {
+    const ext = meta.extensions as Record<string, unknown>;
+    const capabilities = ext.capabilities;
+    const configuration = ext.configuration;
+    const limitations = ext.limitations;
+    const security = ext.security;
+    const observability = ext.observability;
+    const integration = ext.integration;
+    const examples = ext.examples;
+
+    if (isStringArray(capabilities) && capabilities.length > 0) {
+      lines.push('Capabilities:');
+      for (const c of capabilities) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(configuration) && configuration.length > 0) {
+      lines.push('Configuration:');
+      for (const c of configuration) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(integration) && integration.length > 0) {
+      lines.push('Integration:');
+      for (const c of integration) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(observability) && observability.length > 0) {
+      lines.push('Observability:');
+      for (const c of observability) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(security) && security.length > 0) {
+      lines.push('Security notes:');
+      for (const c of security) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(limitations) && limitations.length > 0) {
+      lines.push('Limitations / non-goals:');
+      for (const c of limitations) lines.push('- ' + c);
+      lines.push('');
+    }
+    if (isStringArray(examples) && examples.length > 0) {
+      lines.push('Examples:');
+      for (const c of examples) lines.push('- ' + c);
+      lines.push('');
+    }
+
+    // Always include raw extensions JSON for crawlers/LLMs (bounded).
+    lines.push('Extensions (JSON):');
+    lines.push(stringifyWithLimit(ext));
+    lines.push('');
   }
 
   lines.push('Exports:');

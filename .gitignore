@@ -4,6 +4,9 @@ dist/
 .env
 .env.*
 
+# hayagriva-llm observability (local analytics)
+.hayagriva-llm/
+
 
 # Docusaurus (website/)
 website/node_modules/

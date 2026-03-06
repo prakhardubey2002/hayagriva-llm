@@ -20,6 +20,7 @@ export interface JsonMetadataInput {
   useCases?: string[];
   documentation?: string;
   relatedPackages?: string[];
+  extensions?: Record<string, unknown>;
   /** Any extra keys (e.g. from AI adapter) to preserve. */
   extras?: Record<string, unknown>;
 }
@@ -40,6 +41,7 @@ export function buildJsonMetadata(input: JsonMetadataInput): LLMPackageJson {
     useCases,
     documentation,
     relatedPackages,
+    extensions,
     extras = {},
   } = input;
 
@@ -62,6 +64,7 @@ export function buildJsonMetadata(input: JsonMetadataInput): LLMPackageJson {
   if (useCases !== undefined) base.useCases = useCases;
   if (documentation !== undefined) base.documentation = documentation;
   if (relatedPackages !== undefined) base.relatedPackages = relatedPackages;
+  if (extensions !== undefined) base.extensions = extensions;
 
   for (const [key, value] of Object.entries(extras)) {
     if (value !== undefined && value !== null && !(key in base)) {

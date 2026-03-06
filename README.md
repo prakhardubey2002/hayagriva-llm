@@ -74,6 +74,24 @@ Copy `.env.example` to `.env` and set `OPEN_ROUTER_API_KEY` (and optionally `OPE
 - **`llm.package.json`** — Structured metadata: name, version, description, `exports`, `hooks`, `frameworks`, optional `summary`, `sideEffects`, `keywords`; IDE- and search-friendly.
 - **`llm.package.txt`** — LLM-optimized plain-text summary for context windows and retrieval.
 
+### Observability (local)
+
+Every run writes analytics to a local hidden folder in the **package you run from**:
+
+- **`.hayagriva-llm/runs.jsonl`**: append-only history (one JSON per run)
+- **`.hayagriva-llm/last-run.json`**: the most recent run (pretty JSON)
+
+This folder is meant to be **local-only** (it’s ignored by git).
+
+To view a local dashboard:
+
+```bash
+# from your package root (where .hayagriva-llm/ exists)
+npx hayagriva-llm dashboard
+# or
+hayagriva-llm dashboard --port 4177
+```
+
 ---
 
 ## Flow (high level)

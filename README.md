@@ -35,13 +35,14 @@ From your package root:
 hayagriva-llm generate [options]
 ```
 
-| Option            | Description                                   | Default                                     |
-| ----------------- | --------------------------------------------- | ------------------------------------------- |
-| `--mode <type>`   | `static` (ts-morph) or `ai` (OpenRouter)      | `static`                                    |
-| `--api-key <key>` | OpenRouter API key (required for `--mode ai`) | `OPEN_ROUTER_API_KEY` env                   |
-| `--model <name>`  | OpenRouter model (AI mode)                    | `openai/gpt-4o-mini` or `OPEN_ROUTER_MODEL` |
-| `--include-src`   | Include full entry source in AI prompt        | off                                         |
-| `--verbose`       | Debug logging                                 | off                                         |
+| Option            | Description                                            | Default                                     |
+| ----------------- | ------------------------------------------------------ | ------------------------------------------- |
+| `--mode <type>`   | `static` (ts-morph) or `ai` (OpenRouter)               | `static`                                    |
+| `--api-key <key>` | OpenRouter API key (required for `--mode ai`)          | `OPEN_ROUTER_API_KEY` env                   |
+| `--model <name>`  | OpenRouter model (AI mode)                             | `openai/gpt-4o-mini` or `OPEN_ROUTER_MODEL` |
+| `--include-src`   | Include full entry source in AI prompt                 | off                                         |
+| `--verbose`       | Debug logging                                          | off                                         |
+| `--rule`          | Also generate a Cursor rule `.mdc` in `.cursor/rules/` | off                                         |
 
 **Examples:**
 
@@ -54,6 +55,10 @@ hayagriva-llm generate --mode ai
 
 # AI with custom model and full source context
 hayagriva-llm generate --mode ai --model openai/gpt-4o --include-src --verbose
+
+# Also generate a Cursor rule file (.cursor/rules/<package-name>.mdc)
+hayagriva-llm generate --rule
+hayagriva-llm generate --mode ai --rule
 ```
 
 ---

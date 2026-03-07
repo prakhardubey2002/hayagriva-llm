@@ -73,6 +73,8 @@ export interface GenerateOptions {
   model: string;
   includeSrc: boolean;
   verbose: boolean;
+  /** If true, also write a Cursor rule .mdc file to .cursor/rules/ */
+  generateRule?: boolean;
 }
 
 /** AI response: only exports required; rest optional and extensible. */

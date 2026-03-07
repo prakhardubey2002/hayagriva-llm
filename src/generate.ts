@@ -2,13 +2,14 @@
  * Main orchestration: load package.json, detect entry, run mode, write outputs.
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { detectEntryFile } from './parseExports.js';
 import { extractStaticExports, getHooksFromExports } from './staticMode.js';
 import { runAiMode } from './aiMode.js';
 import { buildJsonMetadata } from './buildJsonMetadata.js';
 import { buildTxtMetadata } from './buildTxtMetadata.js';
+import { buildRuleMdc } from './buildRuleMdc.js';
 import { getVersion } from './version.js';
 import { checkOpenRouterAuth } from './openrouter.js';
 import { appendRunJsonl, newRunId, writeLastRun, type AiCallAnalytics, type GenerateRunAnalytics } from './observability.js';
@@ -85,8 +86,14 @@ function loadPackageJson(cwd: string): PackageJsonLike {
   }
 }
 
+/** Safe filename slug from package name for .mdc rule file. */
+function ruleFilenameFromPackageName(name: string): string {
+  const slug = name.replace(/@/g, '').replace(/[^a-z0-9-]/gi, '-').replace(/-+/g, '-').replace(/^-|-$/g, '') || 'project';
+  return `${slug}.mdc`;
+}
+
 export async function generate(cwd: string, options: GenerateOptions): Promise<void> {
-  const { mode, apiKey, model, includeSrc, verbose } = options;
+  const { mode, apiKey, model, includeSrc, verbose, generateRule } = options;
   const log = verbose ? (msg: string) => console.error('[hayagriva-llm]', msg) : () => { };
 
   const jsonPath = resolve(cwd, 'llm.package.json');
@@ -275,6 +282,15 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
   writeFileSync(jsonPath, JSON.stringify(finalMeta, null, 2) + '\n', 'utf-8');
   writeFileSync(txtPath, buildTxtMetadata(finalMeta), 'utf-8');
 
+  let rulePath: string | undefined;
+  if (generateRule) {
+    const rulesDir = resolve(cwd, '.cursor', 'rules');
+    if (!existsSync(rulesDir)) mkdirSync(rulesDir, { recursive: true });
+    const ruleFile = ruleFilenameFromPackageName(finalMeta.name);
+    rulePath = resolve(rulesDir, ruleFile);
+    writeFileSync(rulePath, buildRuleMdc(finalMeta), 'utf-8');
+  }
+
   // Always print outcome so user sees feedback even without --verbose
   if (existing) {
     console.log('Updated llm.package.json (merged with existing)');
@@ -283,7 +299,8 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
     console.log('Created llm.package.json');
     console.log('Created llm.package.txt');
   }
-  log('Paths: ' + jsonPath + ', ' + txtPath);
+  if (rulePath) console.log('Created ' + rulePath);
+  log('Paths: ' + jsonPath + ', ' + txtPath + (rulePath ? ', ' + rulePath : ''));
 
   run.ok = true;
   run.finishedAt = new Date().toISOString();

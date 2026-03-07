@@ -31,12 +31,14 @@ program
   .option('--model <name>', 'OpenRouter model (ai mode)', DEFAULT_MODEL)
   .option('--include-src', 'Include full source in AI prompt (ai mode)')
   .option('--verbose', 'Debug logging')
+  .option('--rule', 'Also generate a Cursor rule .mdc file in .cursor/rules/')
   .action(async (opts: {
     mode: string;
     apiKey?: string;
     model: string;
     includeSrc: boolean;
     verbose: boolean;
+    rule?: boolean;
   }) => {
     const mode = opts.mode === 'ai' ? 'ai' : 'static';
     const model = process.env.OPEN_ROUTER_MODEL || process.env.HAYAGRIVA_LLM_MODEL || opts.model;
@@ -47,6 +49,7 @@ program
         model,
         includeSrc: Boolean(opts.includeSrc),
         verbose: Boolean(opts.verbose),
+        generateRule: Boolean(opts.rule),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);

@@ -70,7 +70,7 @@ Output schema — every export must have type, description, hook; fill params, r
       "params": "Optional: parameter names and types or short signature, e.g. 'options: { key: string }, callback?: () => void'",
       "returns": "Optional: return type or one-line description of return value",
       "sideEffect": false,
-      "example": "Optional: short code snippet or usage, e.g. 'createServer({ port: 3000 })' or "import { x } from 'pkg'; x()"",
+      "example": "Optional: short code snippet or usage, e.g. 'createServer({ port: 3000 })' or \\"import { x } from 'pkg'; x()\\"",
       "stability": "Optional: 'stable' | 'experimental' | 'deprecated'",
       "notes": "Optional: caveats, gotchas, performance notes"
     }

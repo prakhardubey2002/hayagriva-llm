@@ -1,5 +1,5 @@
 Package: hayagriva-llm
-Version: 1.2.0
+Version: 2.0.0
 
 Description:
 Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt
@@ -18,6 +18,9 @@ Reason to use:
 - Supports TypeScript analysis for accurate type information
 - Provides CLI interface for easy integration into build processes
 - Offers both static and AI-powered analysis modes
+- Includes local observability dashboard
+- Handles both CommonJS and ESM modules
+- Validates command-line arguments and options
 
 Use cases:
 - Generating metadata for npm packages to improve AI assistant responses
@@ -27,6 +30,9 @@ Use cases:
 - Documenting package functionality for machine learning model training
 - Automating metadata generation in CI/CD pipelines
 - Creating local observability dashboards for metadata analysis
+- Supporting TypeScript projects with accurate type information
+- Analyzing package functionality for automated testing tools
+- Improving IDE integration with AI-powered features
 
 Side effects:
 - reads package.json
@@ -34,7 +40,7 @@ Side effects:
 - writes llm.package.json and llm.package.txt files
 
 Keywords:
-llm, metadata, npm, package, llm.txt, cli, typescript, ai, documentation, package-management, code-analysis, ai-assistants, automated-documentation, hayagriva
+llm, metadata, npm, package, llm.txt, cli, typescript, ai, documentation, package-management, code-analysis, ai-assistants, automated-documentation, hayagriva, node, command-line, static-analysis, ai-analysis, dashboard, observability
 
 
 Documentation:
@@ -54,6 +60,11 @@ Capabilities:
 - Supports environment variable configuration
 - Provides verbose logging for debugging
 - Validates command-line arguments and options
+- Reads package files from current working directory
+- Writes metadata files to package directory
+- Supports CI/CD pipeline integration
+- TypeScript project analysis
+- Command-line tool for scripting
 
 Configuration:
 - OPEN_ROUTER_MODEL environment variable
@@ -61,6 +72,8 @@ Configuration:
 - OPENROUTER_API_KEY environment variable
 - Command-line options for mode, API key, model selection
 - Port configuration for dashboard server
+- Verbose logging option
+- Include source option for AI mode
 
 Integration:
 - Compatible with npm package workflows
@@ -69,6 +82,7 @@ Integration:
 - Command-line tool for scripting
 - Environment variable configuration
 - Local dashboard for metadata inspection
+- Build process automation
 
 Observability:
 - Dashboard server at localhost:4177 (configurable)
@@ -108,14 +122,21 @@ Extensions (JSON):
     "Handles both CommonJS and ESM modules",
     "Supports environment variable configuration",
     "Provides verbose logging for debugging",
-    "Validates command-line arguments and options"
+    "Validates command-line arguments and options",
+    "Reads package files from current working directory",
+    "Writes metadata files to package directory",
+    "Supports CI/CD pipeline integration",
+    "TypeScript project analysis",
+    "Command-line tool for scripting"
   ],
   "configuration": [
     "OPEN_ROUTER_MODEL environment variable",
     "HAYAGRIVA_LLM_MODEL environment variable",
     "OPENROUTER_API_KEY environment variable",
     "Command-line options for mode, API key, model selection",
-    "Port configuration for dashboard server"
+    "Port configuration for dashboard server",
+    "Verbose logging option",
+    "Include source option for AI mode"
   ],
   "limitations": [
     "Requires Node.js 18+",
@@ -143,7 +164,8 @@ Extensions (JSON):
     "TypeScript project analysis",
     "Command-line tool for scripting",
     "Environment variable configuration",
-    "Local dashboard for metadata inspection"
+    "Local dashboard for metadata inspection",
+    "Build process automation"
   ],
   "examples": [
     "hayagriva-llm generate --mode static",

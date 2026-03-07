@@ -1,6 +1,6 @@
 {
   "name": "hayagriva-llm",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
   "exports": {
     "cli": {
@@ -19,7 +19,7 @@
   "frameworks": [
     "node"
   ],
-  "generatedBy": "hayagriva-llm@1.2.0",
+  "generatedBy": "hayagriva-llm@2.0.0",
   "mode": "ai",
   "summary": "Hayagriva-llm is a CLI tool that generates structured LLM metadata files (llm.package.json and llm.package.txt) for Node.js packages. It analyzes package manifests and source code to create comprehensive AI-readable descriptions of package functionality, helping AI systems better understand and interact with npm packages. The tool integrates seamlessly with existing package.json workflows and supports TypeScript analysis for accurate type information.",
   "sideEffects": [
@@ -41,7 +41,13 @@
     "code-analysis",
     "ai-assistants",
     "automated-documentation",
-    "hayagriva"
+    "hayagriva",
+    "node",
+    "command-line",
+    "static-analysis",
+    "ai-analysis",
+    "dashboard",
+    "observability"
   ],
   "whenToUse": "Use Hayagriva-llm when you want to make your Node.js package more discoverable and understandable by AI systems. It's particularly valuable for package authors who want their libraries to be properly interpreted by AI assistants, documentation generators, or automated code analysis tools. Choose this package when you need to generate standardized metadata that describes your package's functionality in a structured format that AI systems can parse and utilize.",
   "reasonToUse": [
@@ -51,7 +57,10 @@
     "Integrates with existing package.json workflows",
     "Supports TypeScript analysis for accurate type information",
     "Provides CLI interface for easy integration into build processes",
-    "Offers both static and AI-powered analysis modes"
+    "Offers both static and AI-powered analysis modes",
+    "Includes local observability dashboard",
+    "Handles both CommonJS and ESM modules",
+    "Validates command-line arguments and options"
   ],
   "useCases": [
     "Generating metadata for npm packages to improve AI assistant responses",
@@ -60,7 +69,10 @@
     "Providing structured data for AI code completion tools",
     "Documenting package functionality for machine learning model training",
     "Automating metadata generation in CI/CD pipelines",
-    "Creating local observability dashboards for metadata analysis"
+    "Creating local observability dashboards for metadata analysis",
+    "Supporting TypeScript projects with accurate type information",
+    "Analyzing package functionality for automated testing tools",
+    "Improving IDE integration with AI-powered features"
   ],
   "documentation": "See README",
   "relatedPackages": [
@@ -83,14 +95,21 @@
       "Handles both CommonJS and ESM modules",
       "Supports environment variable configuration",
       "Provides verbose logging for debugging",
-      "Validates command-line arguments and options"
+      "Validates command-line arguments and options",
+      "Reads package files from current working directory",
+      "Writes metadata files to package directory",
+      "Supports CI/CD pipeline integration",
+      "TypeScript project analysis",
+      "Command-line tool for scripting"
     ],
     "configuration": [
       "OPEN_ROUTER_MODEL environment variable",
       "HAYAGRIVA_LLM_MODEL environment variable",
       "OPENROUTER_API_KEY environment variable",
       "Command-line options for mode, API key, model selection",
-      "Port configuration for dashboard server"
+      "Port configuration for dashboard server",
+      "Verbose logging option",
+      "Include source option for AI mode"
     ],
     "limitations": [
       "Requires Node.js 18+",
@@ -118,7 +137,8 @@
       "TypeScript project analysis",
       "Command-line tool for scripting",
       "Environment variable configuration",
-      "Local dashboard for metadata inspection"
+      "Local dashboard for metadata inspection",
+      "Build process automation"
     ],
     "examples": [
       "hayagriva-llm generate --mode static",

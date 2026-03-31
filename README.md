@@ -44,6 +44,19 @@ hayagriva-llm generate [options]
 | `--verbose`       | Debug logging                                          | off                                         |
 | `--rule`          | Also generate a Cursor rule `.mdc` in `.cursor/rules/` | off                                         |
 
+### Agent operating manual (AGENT.md)
+
+Generate a thorough `AGENT.md` file (an operating manual for coding agents):
+
+```bash
+hayagriva-llm agent [options]
+```
+
+| Option         | Description               | Default    |
+| -------------- | ------------------------- | ---------- |
+| `--out <file>` | Output filename           | `AGENT.md` |
+| `--force`      | Overwrite existing output | off        |
+
 **Examples:**
 
 ```bash
@@ -59,6 +72,12 @@ hayagriva-llm generate --mode ai --model openai/gpt-4o --include-src --verbose
 # Also generate a Cursor rule file (.cursor/rules/<package-name>.mdc)
 hayagriva-llm generate --rule
 hayagriva-llm generate --mode ai --rule
+
+# Generate AGENT.md (manual for coding agents)
+hayagriva-llm agent
+
+# Write to a custom filename and overwrite if it already exists
+hayagriva-llm agent --out Agent.md --force
 ```
 
 ---
@@ -303,7 +322,7 @@ Then use the same “check metadata is committed” step, or upload `llm.package
 
 ## Docs
 
-The full documentation is built with **Docusaurus**. Source lives in `website/docs/`; the build output is written to the repo **`docs/`** folder so GitHub Pages can deploy from it (GitHub allows only the **docs** folder or the root as the deployment source).
+The full documentation is built with **DeepWiki**. Source lives in https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
 | Page                                        | Description                                     |
 | ------------------------------------------- | ----------------------------------------------- |

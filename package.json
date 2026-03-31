@@ -1,6 +1,6 @@
 {
   "name": "hayagriva-llm",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
   "type": "module",
   "bin": {

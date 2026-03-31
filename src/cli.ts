@@ -8,6 +8,7 @@ import 'dotenv/config';
 
 import { Command } from 'commander';
 import { generate } from './generate.js';
+import { generateAgentMd } from './agent.js';
 import { getVersion } from './version.js';
 import { DEFAULT_MODEL } from './types.js';
 import { startDashboardServer } from './dashboard.js';
@@ -51,6 +52,22 @@ program
         verbose: Boolean(opts.verbose),
         generateRule: Boolean(opts.rule),
       });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error('Error:', message);
+      process.exit(1);
+    }
+  });
+
+program
+  .command('agent')
+  .description('Generate AGENT.md (operating manual for coding agents)')
+  .option('--out <file>', 'Output filename', 'AGENT.md')
+  .option('--force', 'Overwrite existing file')
+  .action(async (opts: { out: string; force?: boolean }) => {
+    try {
+      const result = generateAgentMd(process.cwd(), { outFile: opts.out, force: Boolean(opts.force) });
+      console.log(`${result.action === 'created' ? 'Created' : 'Updated'} ${result.path}`);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Error:', message);

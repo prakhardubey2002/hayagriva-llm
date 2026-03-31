@@ -9,9 +9,7 @@
 
 **Structured LLM metadata for Node.js packages** — the first standard for machine-readable package context in the npm ecosystem. Generates `llm.package.json` and `llm.package.txt` for indexing, search, and IDE tooling (e.g. Cursor, Antigravity).
 
-📖 **Documentation:** Full docs are built with [Docusaurus](https://docusaurus.io/) and deployed to **GitHub Pages**. See [Deploying the docs](#deploying-the-docs) for setup. After deployment, the site is available at:
-
-**https://prakhardubey2002.github.io/hayagriva-llm/**
+📖 **Documentation:** https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
 ---
 
@@ -146,7 +144,7 @@ flowchart TB
   F --> M[Write llm.package.txt]
 ```
 
-Detailed flow (entry detection, validation, and file layout) is in the [documentation site](#docs) (see [Flow & architecture](website/docs/flow.md) in the repo).
+Detailed flow (entry detection, validation, and file layout) is documented on DeepWiki: https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
 ---
 
@@ -322,24 +320,24 @@ Then use the same “check metadata is committed” step, or upload `llm.package
 
 ## Docs
 
-The full documentation is built with **DeepWiki**. Source lives in https://deepwiki.com/prakhardubey2002/hayagriva-llm
+Full documentation: https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
-| Page                                        | Description                                     |
-| ------------------------------------------- | ----------------------------------------------- |
-| [Introduction](website/docs/intro.md)       | Get started, install, options                   |
-| [Flow & architecture](website/docs/flow.md) | End-to-end pipeline and Mermaid diagrams        |
-| [Schema](website/docs/schema.md)            | `llm.package.json` and `llm.package.txt` format |
-| [AI mode](website/docs/ai-mode.md)          | Multi-step AI flow and guardrails               |
+| Page                                                                       | Description                                     |
+| -------------------------------------------------------------------------- | ----------------------------------------------- |
+| [Introduction](https://deepwiki.com/prakhardubey2002/hayagriva-llm)        | Get started, install, options                   |
+| [Flow & architecture](https://deepwiki.com/prakhardubey2002/hayagriva-llm) | End-to-end pipeline and Mermaid diagrams        |
+| [Schema](https://deepwiki.com/prakhardubey2002/hayagriva-llm)              | `llm.package.json` and `llm.package.txt` format |
+| [AI mode](https://deepwiki.com/prakhardubey2002/hayagriva-llm)             | Multi-step AI flow and guardrails               |
 
-**Run the docs locally:** `npm run docs:install` then `npm run docs:start` (from repo root).
+**Documentation:** https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
-### Deploying the docs (GitHub Pages from `/docs`)
+### Documentation Hosting
 
-1. **Build to `docs/`:** Run `npm run docs:build` from repo root. Docusaurus writes the static site into **`docs/`**.
-2. **Enable GitHub Pages:** In the repo **Settings → Pages → Build and deployment → Source**, choose **Deploy from a branch**. Select branch **main** and folder **/docs**. Save.
-3. **Commit and push:** Commit the built `docs/` folder and push to `main`. The workflow [Build docs (for GitHub Pages /docs)](.github/workflows/deploy-docs.yml) can build Docusaurus to `docs/` and commit it on push to `main`, or you can run `npm run docs:build` locally and commit `docs/` yourself.
+1. **View docs:** https://deepwiki.com/prakhardubey2002/hayagriva-llm
+2. **Docs are hosted on DeepWiki** (see link above).
+3. **Keep updated:** Update source in the repo; consult the DeepWiki link above for the latest docs.
 
-The site will be at **https://prakhardubey2002.github.io/hayagriva-llm/** (see `website/docusaurus.config.js`).
+DeepWiki documentation: https://deepwiki.com/prakhardubey2002/hayagriva-llm
 
 ---
 

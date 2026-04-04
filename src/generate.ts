@@ -11,7 +11,8 @@ import { buildJsonMetadata } from './buildJsonMetadata.js';
 import { buildTxtMetadata } from './buildTxtMetadata.js';
 import { buildRuleMdc } from './buildRuleMdc.js';
 import { getVersion } from './version.js';
-import { checkOpenRouterAuth } from './openrouter.js';
+import { checkOpenRouterAuth, checkOpenRouterAuthTryModels } from './openrouter.js';
+import { getModelIds } from './freeLlmRouter.js';
 import { appendRunJsonl, newRunId, writeLastRun, type AiCallAnalytics, type GenerateRunAnalytics } from './observability.js';
 import {
   printAuthChecking,
@@ -93,7 +94,7 @@ function ruleFilenameFromPackageName(name: string): string {
 }
 
 export async function generate(cwd: string, options: GenerateOptions): Promise<void> {
-  const { mode, apiKey, model, includeSrc, verbose, generateRule } = options;
+  const { mode, apiKey, model, includeSrc, verbose, generateRule, freeLlmRouter } = options;
   const log = verbose ? (msg: string) => console.error('[hayagriva-llm]', msg) : () => { };
 
   const jsonPath = resolve(cwd, 'llm.package.json');
@@ -114,6 +115,7 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
       verbose: Boolean(verbose),
       apiKeyProvided: Boolean(apiKey && apiKey.trim() !== ''),
       model,
+      ...(freeLlmRouter ? { freeLlmRouter: true } : {}),
     },
   };
 
@@ -163,11 +165,29 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
       if (!key || key.trim() === '') {
         throw new Error('AI mode requires --api-key or OPEN_ROUTER_API_KEY (or OPENROUTER_API_KEY)');
       }
+      let freeRouterModelIds: string[] | undefined;
+      let freeRouterRequestId: string | undefined;
+      if (freeLlmRouter) {
+        log('Fetching free model list from Free LLM Router (cached ~15m in-process)');
+        const { ids, requestId } = await getModelIds(['chat'], 'capable', 25);
+        if (!ids.length) {
+          throw new Error(
+            'Free LLM Router returned no models; check FREE_LLM_ROUTER_API_KEY (get a key: https://freellmrouter.com/dashboard?tab=api) and https://freellmrouter.com/docs'
+          );
+        }
+        freeRouterModelIds = ids;
+        freeRouterRequestId = requestId;
+        if (verbose) {
+          log(`Free LLM Router: ${ids.length} candidate model(s), requestId=${requestId ?? 'n/a'}`);
+        }
+      }
       printAiModeHeader();
       printAuthChecking();
       let authResult: Awaited<ReturnType<typeof checkOpenRouterAuth>>;
       try {
-        authResult = await checkOpenRouterAuth(key.trim(), model);
+        authResult = freeRouterModelIds?.length
+          ? await checkOpenRouterAuthTryModels(key.trim(), freeRouterModelIds)
+          : await checkOpenRouterAuth(key.trim(), model);
       } catch (e) {
         printAuthFailure(e instanceof Error ? e.message : String(e));
         throw e;
@@ -175,7 +195,11 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
       if (!authResult.ok) {
         if (authResult.reason === 'rate_limited') {
           printRateLimited(authResult.message);
-          throw new Error('OpenRouter model rate-limited (429). Retry later or use another model (OPEN_ROUTER_MODEL).');
+          throw new Error(
+            freeRouterModelIds?.length
+              ? 'OpenRouter: all Free LLM Router candidate models failed or were rate-limited (429). Retry later.'
+              : 'OpenRouter model rate-limited (429). Retry later or use another model (OPEN_ROUTER_MODEL).'
+          );
         }
         printAuthFailure('invalid or unauthorized API key');
         throw new Error('OpenRouter API key invalid or unauthorized (401)');
@@ -222,7 +246,10 @@ export async function generate(cwd: string, options: GenerateOptions): Promise<v
             responseChars: c.responseChars,
             usage: c.usage,
           });
-        }
+        },
+        freeRouterModelIds?.length
+          ? { freeRouter: { modelIds: freeRouterModelIds, requestId: freeRouterRequestId } }
+          : undefined
       );
       printAiStepsDone();
 

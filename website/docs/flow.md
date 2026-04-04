@@ -101,7 +101,7 @@ sequenceDiagram
   participant OpenRouter
   participant Validator
 
-  CLI->>aiMode: runAiMode(input, apiKey, model)
+  CLI->>aiMode: runAiMode(input, apiKey, model, …, freeRouter?)
   aiMode->>aiMode: buildUserContent(manifest + optional source)
 
   Note over aiMode,OpenRouter: Step 1 — Package overview

@@ -6,6 +6,24 @@ import type { ExportMeta, ExportsMap } from './types.js';
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 
+/** Thrown when OpenRouter returns a non-OK HTTP status (used for fallback and feedback). */
+export class OpenRouterHttpError extends Error {
+  readonly status: number;
+
+  constructor(status: number, message: string) {
+    super(message);
+    this.name = 'OpenRouterHttpError';
+    this.status = status;
+  }
+}
+
+/** Map HTTP status to Free LLM Router feedback issue type. */
+export function issueFromHttpStatus(status: number): 'rate_limited' | 'unavailable' | 'error' {
+  if (status === 429) return 'rate_limited';
+  if (status === 503) return 'unavailable';
+  return 'error';
+}
+
 /** Result of auth/availability check: ok, unauthorized (401), or rate-limited (429). */
 export type AuthCheckResult = { ok: true } | { ok: false; reason: 'unauthorized' } | { ok: false; reason: 'rate_limited'; message: string };
 
@@ -33,9 +51,38 @@ export async function checkOpenRouterAuth(apiKey: string, model: string): Promis
   }
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`OpenRouter API error ${res.status}: ${text.slice(0, 300)}`);
+    throw new OpenRouterHttpError(res.status, `OpenRouter API error ${res.status}: ${text.slice(0, 300)}`);
   }
   return { ok: true };
+}
+
+/**
+ * Try OpenRouter auth with the first model that succeeds. Stops on 401 (invalid key).
+ * Other failures try the next candidate (Free LLM Router free-model list).
+ */
+export async function checkOpenRouterAuthTryModels(
+  apiKey: string,
+  models: string[]
+): Promise<AuthCheckResult> {
+  if (models.length === 0) {
+    return { ok: false, reason: 'rate_limited', message: 'No candidate models from Free LLM Router' };
+  }
+  let last429 = '';
+  for (const model of models) {
+    try {
+      const r = await checkOpenRouterAuth(apiKey, model);
+      if (r.ok) return { ok: true };
+      if (r.reason === 'unauthorized') return r;
+      last429 = r.message;
+    } catch (e) {
+      if (e instanceof OpenRouterHttpError && e.status === 401) {
+        return { ok: false, reason: 'unauthorized' };
+      }
+      last429 = e instanceof Error ? e.message : String(e);
+    }
+  }
+  if (last429) return { ok: false, reason: 'rate_limited', message: last429 };
+  return { ok: false, reason: 'rate_limited', message: 'All candidate models failed auth check' };
 }
 
 /** Token usage from OpenRouter API response. */
@@ -128,7 +175,7 @@ export async function callOpenRouterRaw(options: OpenRouterOptions): Promise<unk
 
   if (!res.ok) {
     const text = await res.text();
-    throw new Error(`OpenRouter API error ${res.status}: ${text.slice(0, 500)}`);
+    throw new OpenRouterHttpError(res.status, `OpenRouter API error ${res.status}: ${text.slice(0, 500)}`);
   }
 
   const data = (await res.json()) as {
@@ -180,6 +227,47 @@ export async function callOpenRouterWithValidator<T>(
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(`[AI step "${stepName}"] Validation failed: ${msg}`);
   }
+}
+
+export type FreeRouterFeedbackIssue = 'error' | 'rate_limited' | 'unavailable';
+
+export interface FreeRouterCallFeedback {
+  requestId?: string;
+  onSuccess: (modelId: string) => void;
+  onIssue: (modelId: string, issue: FreeRouterFeedbackIssue, details?: string) => void;
+}
+
+/**
+ * Try OpenRouter models in order until one returns valid JSON for the step.
+ * Optional feedback hooks for [Free LLM Router](https://freellmrouter.com/docs).
+ */
+export async function callOpenRouterWithValidatorTryModels<T>(
+  base: Omit<OpenRouterOptions, 'model'>,
+  models: string[],
+  validate: (parsed: unknown) => T,
+  stepName: string,
+  feedback?: FreeRouterCallFeedback
+): Promise<{ result: T; modelUsed: string }> {
+  if (models.length === 0) {
+    throw new Error(`[AI step "${stepName}"] No OpenRouter models to try`);
+  }
+  let lastError: Error | undefined;
+  for (const model of models) {
+    try {
+      const result = await callOpenRouterWithValidator({ ...base, model }, validate, stepName);
+      feedback?.onSuccess(model);
+      return { result, modelUsed: model };
+    } catch (e) {
+      const details = e instanceof Error ? e.message : String(e);
+      if (e instanceof OpenRouterHttpError) {
+        feedback?.onIssue(model, issueFromHttpStatus(e.status), details);
+      } else {
+        feedback?.onIssue(model, 'error', details);
+      }
+      lastError = e instanceof Error ? e : new Error(String(e));
+    }
+  }
+  throw lastError ?? new Error(`[AI step "${stepName}"] All models failed`);
 }
 
 // --- Strict validators for multi-step AI ---

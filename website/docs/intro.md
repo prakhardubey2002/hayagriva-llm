@@ -35,6 +35,9 @@ hayagriva-llm generate
 
 # AI mode — richer metadata via OpenRouter (set OPEN_ROUTER_API_KEY)
 hayagriva-llm generate --mode ai
+
+# AI mode with Free LLM Router (ranked free models + caching; see docs/free-llm-router)
+hayagriva-llm generate --freellmrouter
 ```
 
 This writes `llm.package.json` and `llm.package.txt` in the current directory.
@@ -43,20 +46,22 @@ This writes `llm.package.json` and `llm.package.txt` in the current directory.
 
 ## Options
 
-| Option            | Description                      | Default                   |
-| ----------------- | -------------------------------- | ------------------------- |
-| `--mode <type>`   | `static` or `ai`                 | `static`                  |
-| `--api-key <key>` | OpenRouter API key (AI mode)     | `OPEN_ROUTER_API_KEY` env |
-| `--model <name>`  | OpenRouter model (AI mode)       | `openai/gpt-4o-mini`      |
-| `--include-src`   | Include full source in AI prompt | off                       |
-| `--verbose`       | Debug logging                    | off                       |
+| Option            | Description                                                                                                                          | Default                   |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------- |
+| `--mode <type>`   | `static` or `ai`                                                                                                                     | `static`                  |
+| `--api-key <key>` | OpenRouter API key (AI mode)                                                                                                         | `OPEN_ROUTER_API_KEY` env |
+| `--model <name>`  | OpenRouter model (AI mode)                                                                                                           | `openai/gpt-4o-mini`      |
+| `--include-src`   | Include full source in AI prompt                                                                                                     | off                       |
+| `--verbose`       | Debug logging                                                                                                                        | off                       |
+| `--freellmrouter` | [Free LLM Router](https://freellmrouter.com/docs): ranked free models, cached list; needs `FREE_LLM_ROUTER_API_KEY`; implies AI mode | off                       |
 
 ---
 
 ## Environment
 
 - **`OPEN_ROUTER_API_KEY`** — Required for `--mode ai`. Get a key at [OpenRouter](https://openrouter.ai/keys).
-- **`OPEN_ROUTER_MODEL`** — Optional default model for AI mode.
+- **`OPEN_ROUTER_MODEL`** — Optional default model for AI mode (ignored when using `--freellmrouter` for model selection).
+- **`FREE_LLM_ROUTER_API_KEY`** — Required with `--freellmrouter`. Used only to fetch ranked free model IDs; chat traffic still uses OpenRouter. Get the key from the [Free LLM Router dashboard (API tab)](https://freellmrouter.com/dashboard?tab=api). Details: [Free LLM Router](./free-llm-router).
 
 Copy `.env.example` to `.env` in your project and set these as needed.
 
@@ -67,5 +72,6 @@ Copy `.env.example` to `.env` in your project and set these as needed.
 - [Flow & architecture](./flow) — How the CLI works (static vs AI, entry detection).
 - [Schema](./schema) — Structure of `llm.package.json` and `llm.package.txt`.
 - [AI mode](./ai-mode) — Multi-step AI flow and guardrails.
+- [Free LLM Router](./free-llm-router) — Optional free-model discovery and fallbacks.
 
 For using the package in your project, Husky, and GitHub Actions, see the [README in the repository](https://github.com/prakhardubey2002/hayagriva-llm#readme).

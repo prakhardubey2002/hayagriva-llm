@@ -33,14 +33,15 @@ From your package root:
 hayagriva-llm generate [options]
 ```
 
-| Option            | Description                                            | Default                                     |
-| ----------------- | ------------------------------------------------------ | ------------------------------------------- |
-| `--mode <type>`   | `static` (ts-morph) or `ai` (OpenRouter)               | `static`                                    |
-| `--api-key <key>` | OpenRouter API key (required for `--mode ai`)          | `OPEN_ROUTER_API_KEY` env                   |
-| `--model <name>`  | OpenRouter model (AI mode)                             | `openai/gpt-4o-mini` or `OPEN_ROUTER_MODEL` |
-| `--include-src`   | Include full entry source in AI prompt                 | off                                         |
-| `--verbose`       | Debug logging                                          | off                                         |
-| `--rule`          | Also generate a Cursor rule `.mdc` in `.cursor/rules/` | off                                         |
+| Option            | Description                                                                                                                          | Default                                     |
+| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------- |
+| `--mode <type>`   | `static` (ts-morph) or `ai` (OpenRouter)                                                                                             | `static`                                    |
+| `--api-key <key>` | OpenRouter API key (required for `--mode ai`)                                                                                        | `OPEN_ROUTER_API_KEY` env                   |
+| `--model <name>`  | OpenRouter model (AI mode)                                                                                                           | `openai/gpt-4o-mini` or `OPEN_ROUTER_MODEL` |
+| `--include-src`   | Include full entry source in AI prompt                                                                                               | off                                         |
+| `--verbose`       | Debug logging                                                                                                                        | off                                         |
+| `--freellmrouter` | Use [Free LLM Router](https://freellmrouter.com/docs) for ranked free OpenRouter models (`FREE_LLM_ROUTER_API_KEY`; implies AI mode) | off                                         |
+| `--rule`          | Also generate a Cursor rule `.mdc` in `.cursor/rules/`                                                                               | off                                         |
 
 ### Agent operating manual (AGENT.md)
 
@@ -64,6 +65,9 @@ hayagriva-llm generate
 # AI mode: richer metadata (summary, side effects, keywords) via OpenRouter
 hayagriva-llm generate --mode ai
 
+# AI mode with Free LLM Router: live free-model list, in-process cache (~15m), per-step fallback on OpenRouter
+hayagriva-llm generate --freellmrouter
+
 # AI with custom model and full source context
 hayagriva-llm generate --mode ai --model openai/gpt-4o --include-src --verbose
 
@@ -82,12 +86,24 @@ hayagriva-llm agent --out Agent.md --force
 
 ## Environment
 
-| Variable              | Description                                           |
-| --------------------- | ----------------------------------------------------- |
-| `OPEN_ROUTER_API_KEY` | OpenRouter API key (required for AI mode)             |
-| `OPEN_ROUTER_MODEL`   | Default model for AI mode (e.g. `openai/gpt-4o-mini`) |
+| Variable                  | Description                                                                                                                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `OPEN_ROUTER_API_KEY`     | OpenRouter API key (required for AI mode; used for all chat completions)                                                                                                              |
+| `OPEN_ROUTER_MODEL`       | Default model for AI mode (e.g. `openai/gpt-4o-mini`; not used for model pick when `--freellmrouter` is set)                                                                          |
+| `FREE_LLM_ROUTER_API_KEY` | [Free LLM Router](https://freellmrouter.com/docs) key (required with `--freellmrouter` only; get it from the [API tab in the dashboard](https://freellmrouter.com/dashboard?tab=api)) |
 
 Copy `.env.example` to `.env` and set `OPEN_ROUTER_API_KEY` (and optionally `OPEN_ROUTER_MODEL`) for AI mode. Legacy names `OPENROUTER_API_KEY` and `HAYAGRIVA_LLM_MODEL` are still supported.
+
+With **`--freellmrouter`**, hayagriva-llm calls OpenRouter using your OpenRouter key while the router supplies an ordered list of free model IDs. The list is **cached in memory for about 15 minutes**; if the router is unreachable, a **stale cached list** is reused when available (see [Free LLM Router docs](https://freellmrouter.com/docs)).
+
+### Dedicated OpenRouter key (recommended for `--freellmrouter`)
+
+[Free LLM Router](https://freellmrouter.com/docs) recommends a **separate OpenRouter API key** used only for free models, plus a **low credit limit** (e.g. \$1) on OpenRouter so an accidental paid model does not charge your account.
+
+1. Open **[OpenRouter → Keys](https://openrouter.ai/keys)** (or your workspace keys page, e.g. [default workspace keys](https://openrouter.ai/workspaces/default/keys)).
+2. Create a **new** key (do not reuse a production key).
+3. In OpenRouter billing/settings, set a **credit limit** appropriate for experimentation.
+4. Put that key in **`OPEN_ROUTER_API_KEY`**, and set **`FREE_LLM_ROUTER_API_KEY`** to your Free LLM Router key from the **[dashboard → API tab](https://freellmrouter.com/dashboard?tab=api)** ([docs](https://freellmrouter.com/docs)).
 
 ---
 
@@ -315,6 +331,8 @@ If you want AI mode in CI, add your OpenRouter key as a repo secret (e.g. `OPEN_
 ```
 
 Then use the same “check metadata is committed” step, or upload `llm.package.json` / `llm.package.txt` as artifacts.
+
+To use **Free LLM Router** in CI, add a second secret for `FREE_LLM_ROUTER_API_KEY` and run `npx hayagriva-llm generate --freellmrouter` (still set `OPEN_ROUTER_API_KEY` for OpenRouter).
 
 ---
 

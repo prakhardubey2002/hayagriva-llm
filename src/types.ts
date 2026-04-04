@@ -75,6 +75,11 @@ export interface GenerateOptions {
   verbose: boolean;
   /** If true, also write a Cursor rule .mdc file to .cursor/rules/ */
   generateRule?: boolean;
+  /**
+   * Use [Free LLM Router](https://freellmrouter.com/docs) to pick ranked free OpenRouter models.
+   * Requires FREE_LLM_ROUTER_API_KEY; chat requests still use OpenRouter with OPEN_ROUTER_API_KEY.
+   */
+  freeLlmRouter?: boolean;
 }
 
 /** AI response: only exports required; rest optional and extensible. */

@@ -108,7 +108,9 @@ export function buildAgentMd(cwd: string): string {
   out.push('## Agent workflow', '');
   out.push('- **Understand intent**: read `README.md`, then relevant source under `src/`.');
   out.push('- **Prefer small, safe changes**: keep public CLI behavior stable.');
-  out.push('- **Follow existing patterns**: ESM, `commander`, `ts-morph` for static mode, OpenRouter only in AI mode.');
+  out.push(
+    '- **Follow existing patterns**: ESM, `commander`, `ts-morph` for static mode, OpenRouter only in AI mode; optional `--freellmrouter` + `FREE_LLM_ROUTER_API_KEY` for ranked free models.'
+  );
   out.push('- **After edits**: run lint/tests/build locally if you are allowed in your environment.');
   out.push('');
 

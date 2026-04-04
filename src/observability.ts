@@ -47,6 +47,7 @@ export interface GenerateRunAnalytics {
     verbose: boolean;
     apiKeyProvided: boolean;
     model: string;
+    freeLlmRouter?: boolean;
   };
 
   outputs?: {

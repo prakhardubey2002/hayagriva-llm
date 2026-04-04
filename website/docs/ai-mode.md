@@ -46,7 +46,7 @@ That object is then passed into the same `buildJsonMetadata` / `buildTxtMetadata
 ## Environment and options
 
 - **API key:** Required. Set `OPEN_ROUTER_API_KEY` or pass `--api-key`.
-- **Model:** Optional. Set `OPEN_ROUTER_MODEL` or pass `--model` (default: `openai/gpt-4o-mini`).
+- **Model:** Optional. Set `OPEN_ROUTER_MODEL` or pass `--model` (default: `openai/gpt-4o-mini`). With **`--freellmrouter`**, model selection comes from [Free LLM Router](https://freellmrouter.com/docs) instead (see [Free LLM Router](./free-llm-router)).
 - **`--include-src`:** Include full entry file source in both AI prompts for richer context.
 
 ---

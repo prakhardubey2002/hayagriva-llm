@@ -5,13 +5,15 @@
 
 import { readFileSync } from 'node:fs';
 import {
-  callOpenRouterWithValidator,
+  callOpenRouterWithValidatorTryModels,
   validatePackageOverview,
   validateExportsStep,
   validateExportNamesList,
   type ExportsStepResult,
   type TokenUsage,
+  type FreeRouterCallFeedback,
 } from './openrouter.js';
+import { reportIssue, reportSuccess } from './freeLlmRouter.js';
 import type { AIRawResponse } from './types.js';
 
 const BATCH_SIZE = 8;
@@ -130,6 +132,31 @@ export interface AiCallReport {
 
 export type AiCallCallback = (report: AiCallReport) => void;
 
+/** When set, OpenRouter model IDs are tried in order (from Free LLM Router). */
+export interface RunAiModeFreeRouter {
+  modelIds: string[];
+  requestId?: string;
+}
+
+export interface RunAiModeOptions {
+  freeRouter?: RunAiModeFreeRouter;
+}
+
+function modelsForRun(model: string, freeRouter?: RunAiModeFreeRouter): string[] {
+  if (freeRouter?.modelIds && freeRouter.modelIds.length > 0) return freeRouter.modelIds;
+  return [model];
+}
+
+function buildFeedback(freeRouter?: RunAiModeFreeRouter): FreeRouterCallFeedback | undefined {
+  if (!freeRouter?.modelIds?.length) return undefined;
+  const { requestId } = freeRouter;
+  return {
+    requestId,
+    onSuccess: (modelId: string) => reportSuccess(modelId, requestId),
+    onIssue: (modelId: string, issue, details) => reportIssue(modelId, issue, requestId, details),
+  };
+}
+
 /**
  * Run AI mode: multipart flow with small calls and progress. Merges all batches.
  */
@@ -144,11 +171,14 @@ export async function runAiMode(
   apiKey: string,
   model: string,
   onProgress?: AiProgressCallback,
-  onCall?: AiCallCallback
+  onCall?: AiCallCallback,
+  options?: RunAiModeOptions
 ): Promise<AIRawResponse> {
   const userContent = buildUserContent(input);
   const totalUsage: TokenUsage = { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 };
   const onUsage = (u: TokenUsage) => addUsage(totalUsage, u);
+  const candidateModels = modelsForRun(model, options?.freeRouter);
+  const feedback = buildFeedback(options?.freeRouter);
 
   let exportNames = input.exportNames ?? [];
   if (exportNames.length === 0) {
@@ -157,10 +187,9 @@ export async function runAiMode(
     let responseChars = 0;
     let rawChars = 0;
     let usage: TokenUsage | undefined;
-    exportNames = await callOpenRouterWithValidator(
+    const namesTry = await callOpenRouterWithValidatorTryModels(
       {
         apiKey,
-        model,
         systemPrompt: STEP_LIST_NAMES_PROMPT,
         userContent,
         onUsage,
@@ -170,12 +199,16 @@ export async function runAiMode(
           usage = m.usage;
         },
       },
+      candidateModels,
       validateExportNamesList,
-      'export-names'
+      'export-names',
+      feedback
     );
+    exportNames = namesTry.result;
+    const modelUsed = namesTry.modelUsed;
     onCall?.({
       step: 'export-names',
-      model,
+      model: modelUsed,
       systemPromptChars: STEP_LIST_NAMES_PROMPT.length,
       userContentChars: userContent.length,
       responseChars: responseChars || rawChars,
@@ -202,10 +235,9 @@ export async function runAiMode(
   let overviewResponseChars = 0;
   let overviewRawChars = 0;
   let overviewUsage: TokenUsage | undefined;
-  const overview = await callOpenRouterWithValidator(
+  const overviewTry = await callOpenRouterWithValidatorTryModels(
     {
       apiKey,
-      model,
       systemPrompt: STEP_OVERVIEW_PROMPT,
       userContent,
       onUsage,
@@ -215,12 +247,16 @@ export async function runAiMode(
         overviewUsage = m.usage;
       },
     },
+    candidateModels,
     validatePackageOverview,
-    'package-overview'
+    'package-overview',
+    feedback
   );
+  const overview = overviewTry.result;
+  const overviewModel = overviewTry.modelUsed;
   onCall?.({
     step: 'package-overview',
-    model,
+    model: overviewModel,
     systemPromptChars: STEP_OVERVIEW_PROMPT.length,
     userContentChars: userContent.length,
     responseChars: overviewResponseChars || overviewRawChars,
@@ -263,10 +299,9 @@ export async function runAiMode(
       let responseChars = 0;
       let rawChars = 0;
       let usage: TokenUsage | undefined;
-      const result = await callOpenRouterWithValidator<ExportsStepResult>(
+      const batchTry = await callOpenRouterWithValidatorTryModels<ExportsStepResult>(
         {
           apiKey,
-          model,
           systemPrompt: STEP_BATCH_PROMPT,
           userContent: batchUserContent,
           onUsage,
@@ -276,12 +311,16 @@ export async function runAiMode(
             usage = m.usage;
           },
         },
+        candidateModels,
         validateExportsStep,
-        `exports-batch-${batchNum}`
+        `exports-batch-${batchNum}`,
+        feedback
       );
+      const result = batchTry.result;
+      const batchModel = batchTry.modelUsed;
       onCall?.({
         step: `exports-batch-${batchNum}`,
-        model,
+        model: batchModel,
         systemPromptChars: STEP_BATCH_PROMPT.length,
         userContentChars: batchUserContent.length,
         responseChars: responseChars || rawChars,

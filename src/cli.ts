@@ -13,6 +13,13 @@ import { getVersion } from './version.js';
 import { DEFAULT_MODEL } from './types.js';
 import { startDashboardServer } from './dashboard.js';
 
+/** Defer exit one tick so libuv can finish closing handles after failed fetch (avoids some Windows UV_HANDLE_CLOSING assertions). */
+function exitAfterCleanup(code: number): void {
+  setImmediate(() => {
+    process.exit(code);
+  });
+}
+
 const program = new Command();
 
 program
@@ -32,6 +39,10 @@ program
   .option('--model <name>', 'OpenRouter model (ai mode)', DEFAULT_MODEL)
   .option('--include-src', 'Include full source in AI prompt (ai mode)')
   .option('--verbose', 'Debug logging')
+  .option(
+    '--freellmrouter',
+    'Use Free LLM Router for ranked free OpenRouter models (needs FREE_LLM_ROUTER_API_KEY; implies AI mode)'
+  )
   .option('--rule', 'Also generate a Cursor rule .mdc file in .cursor/rules/')
   .action(async (opts: {
     mode: string;
@@ -40,8 +51,9 @@ program
     includeSrc: boolean;
     verbose: boolean;
     rule?: boolean;
+    freellmrouter?: boolean;
   }) => {
-    const mode = opts.mode === 'ai' ? 'ai' : 'static';
+    const mode = opts.mode === 'ai' || Boolean(opts.freellmrouter) ? 'ai' : 'static';
     const model = process.env.OPEN_ROUTER_MODEL || process.env.HAYAGRIVA_LLM_MODEL || opts.model;
     try {
       await generate(process.cwd(), {
@@ -51,11 +63,12 @@ program
         includeSrc: Boolean(opts.includeSrc),
         verbose: Boolean(opts.verbose),
         generateRule: Boolean(opts.rule),
+        freeLlmRouter: Boolean(opts.freellmrouter),
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Error:', message);
-      process.exit(1);
+      exitAfterCleanup(1);
     }
   });
 
@@ -71,7 +84,7 @@ program
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Error:', message);
-      process.exit(1);
+      exitAfterCleanup(1);
     }
   });
 
@@ -83,7 +96,8 @@ program
     const port = Number(opts.port);
     if (!Number.isFinite(port) || port <= 0) {
       console.error('Error: --port must be a valid number');
-      process.exit(1);
+      exitAfterCleanup(1);
+      return;
     }
     try {
       const { url } = await startDashboardServer(process.cwd(), port);
@@ -92,7 +106,7 @@ program
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       console.error('Error:', message);
-      process.exit(1);
+      exitAfterCleanup(1);
     }
   });
 

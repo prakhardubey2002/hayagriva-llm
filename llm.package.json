@@ -1,31 +1,22 @@
 {
   "name": "hayagriva-llm",
-  "version": "2.0.0",
+  "version": "5.0.0",
   "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
-  "exports": {
-    "cli": {
-      "type": "function",
-      "description": "Starts the Hayagriva CLI, parsing command-line arguments and dispatching to the appropriate command handler. It initializes the application state, loads configuration from environment variables, and runs the selected operation such as generating LLM metadata or starting the observability dashboard.",
-      "hook": false,
-      "params": "args?: string[] (optional command-line arguments, defaults to process.argv.slice(2))",
-      "returns": "Promise<void> (resolves when the CLI process completes)",
-      "sideEffect": true,
-      "example": "cli(['generate', '--mode', 'static'])",
-      "stability": "stable",
-      "notes": "Handles both synchronous and asynchronous operations, exits with appropriate status codes on errors"
-    }
-  },
+  "exports": {},
   "hooks": [],
   "frameworks": [
     "node"
   ],
-  "generatedBy": "hayagriva-llm@2.0.0",
+  "generatedBy": "hayagriva-llm@5.0.0",
   "mode": "ai",
-  "summary": "Hayagriva-llm is a CLI tool that generates structured LLM metadata files (llm.package.json and llm.package.txt) for Node.js packages. It analyzes package manifests and source code to create comprehensive AI-readable descriptions of package functionality, helping AI systems better understand and interact with npm packages. The tool integrates seamlessly with existing package.json workflows and supports TypeScript analysis for accurate type information.",
+  "summary": "Hayagriva-llm is a Node.js CLI tool that generates structured, AI-readable metadata files (llm.package.json, llm.package.txt) for npm packages to improve their discoverability and interpretability by LLMs, AI assistants, and automated tooling. It analyzes package manifests and source code using static TypeScript analysis or optional OpenRouter-powered AI extraction, and includes utilities for generating coding agent manuals, Cursor rules, local observability dashboards, and AI readiness audits. Designed for package authors, it integrates seamlessly into existing Node.js workflows and supports both CommonJS and ESM module formats.",
   "sideEffects": [
-    "reads package.json",
-    "analyzes source code",
-    "writes llm.package.json and llm.package.txt files"
+    "reads process.env variables and .env files via dotenv",
+    "reads package.json and source files from current working directory or specified directory",
+    "analyzes package source code using static or AI-powered methods",
+    "writes llm.package.json, llm.package.txt, AGENT.md, and .cursor/rules/*.mdc files to target directory",
+    "starts local HTTP observability dashboard server on configurable port",
+    "may exit Node.js process with status codes on error"
   ],
   "keywords": [
     "llm",
@@ -33,6 +24,9 @@
     "npm",
     "package",
     "llm.txt",
+    "cursor",
+    "ide",
+    "openrouter",
     "cli",
     "typescript",
     "ai",
@@ -47,103 +41,116 @@
     "static-analysis",
     "ai-analysis",
     "dashboard",
-    "observability"
+    "observability",
+    "audit",
+    "agent-md",
+    "cursor-rules",
+    "esm",
+    "commonjs"
   ],
-  "whenToUse": "Use Hayagriva-llm when you want to make your Node.js package more discoverable and understandable by AI systems. It's particularly valuable for package authors who want their libraries to be properly interpreted by AI assistants, documentation generators, or automated code analysis tools. Choose this package when you need to generate standardized metadata that describes your package's functionality in a structured format that AI systems can parse and utilize.",
+  "whenToUse": "Use Hayagriva-llm when you are a Node.js package author looking to make your package more interpretable and discoverable by LLMs, AI coding assistants, automated documentation tools, and AI-powered code analysis systems, particularly if you want to provide structured, machine-readable context for AI systems interacting with your package. It is ideal for generating standardized metadata files, coding agent operating manuals (AGENT.md), Cursor IDE rules, or assessing your package's AI readiness via automated audit scores, and integrates seamlessly into existing Node.js package workflows, build processes, or CI/CD pipelines. Choose this package if you want to leverage static TypeScript source analysis or optional OpenRouter-powered AI extraction, run a local observability dashboard for metadata inspection, and support both CommonJS and ESM module formats for your package.",
   "reasonToUse": [
-    "Generates structured LLM metadata automatically",
-    "Improves AI discoverability of your package",
-    "Creates both JSON and text format descriptions",
-    "Integrates with existing package.json workflows",
-    "Supports TypeScript analysis for accurate type information",
-    "Provides CLI interface for easy integration into build processes",
-    "Offers both static and AI-powered analysis modes",
-    "Includes local observability dashboard",
-    "Handles both CommonJS and ESM modules",
-    "Validates command-line arguments and options"
+    "Automatically generates structured LLM metadata files (llm.package.json, llm.package.txt) for Node.js packages",
+    "Improves package discoverability and interpretability for LLMs, AI assistants, and automated tooling",
+    "Supports static TypeScript analysis via ts-morph and optional AI-powered extraction via OpenRouter",
+    "Generates coding agent operating manuals (AGENT.md) and Cursor IDE rule .mdc files",
+    "Includes AI readiness audit command to generate package AI Readiness Score reports",
+    "Provides local observability dashboard for inspecting generated metadata",
+    "Integrates into build processes and CI/CD pipelines via CLI interface",
+    "Supports both CommonJS and ESM module formats for broad compatibility",
+    "Offers free LLM Router option for ranked free OpenRouter models (no paid API key required)",
+    "Validates inputs and provides verbose debugging logs for troubleshooting"
   ],
   "useCases": [
-    "Generating metadata for npm packages to improve AI assistant responses",
-    "Creating standardized package descriptions for automated documentation systems",
-    "Enhancing package searchability in AI-powered code repositories",
-    "Providing structured data for AI code completion tools",
-    "Documenting package functionality for machine learning model training",
-    "Automating metadata generation in CI/CD pipelines",
-    "Creating local observability dashboards for metadata analysis",
-    "Supporting TypeScript projects with accurate type information",
-    "Analyzing package functionality for automated testing tools",
-    "Improving IDE integration with AI-powered features"
+    "Generating LLM metadata for npm packages to improve AI assistant response accuracy about package functionality",
+    "Creating standardized package descriptions for automated documentation generators and AI training datasets",
+    "Generating AGENT.md operating manuals for coding agents to correctly use your package",
+    "Producing Cursor IDE rules (.mdc files) to guide AI-powered code completion for your package",
+    "Auditing Node.js packages to generate AI Readiness Score reports for improvement",
+    "Running local observability dashboards to inspect and validate generated LLM metadata",
+    "Automating metadata generation in CI/CD pipelines to keep LLM metadata up to date with package changes",
+    "Enhancing package searchability in AI-powered code repositories and package registries",
+    "Supporting TypeScript projects with accurate static type information in generated metadata",
+    "Using free OpenRouter models via Free LLM Router to generate metadata without paid API keys"
   ],
-  "documentation": "See README",
+  "documentation": "https://github.com/prakhardubey2002/hayagriva-llm#readme",
   "relatedPackages": [
     "commander",
     "dotenv",
-    "ts-morph",
-    "vitest",
-    "microbundle",
-    "eslint",
-    "openrouter"
+    "ts-morph"
   ],
   "extensions": {
     "capabilities": [
-      "Analyzes package.json and source code",
-      "Generates llm.package.json and llm.package.txt files",
-      "Supports static TypeScript analysis via ts-morph",
-      "Offers AI-powered analysis using OpenRouter API",
-      "Provides CLI with multiple commands (generate, dashboard)",
-      "Includes local observability dashboard",
-      "Handles both CommonJS and ESM modules",
-      "Supports environment variable configuration",
-      "Provides verbose logging for debugging",
-      "Validates command-line arguments and options",
-      "Reads package files from current working directory",
-      "Writes metadata files to package directory",
-      "Supports CI/CD pipeline integration",
-      "TypeScript project analysis",
-      "Command-line tool for scripting"
+      "Analyzes package.json manifests and source code to extract package functionality",
+      "Generates llm.package.json and llm.package.txt structured LLM metadata files",
+      "Supports static TypeScript analysis via ts-morph for accurate type information",
+      "Offers optional AI-powered metadata extraction using OpenRouter API",
+      "Generates AGENT.md coding agent operating manuals",
+      "Produces Cursor IDE rule .mdc files for AI-powered code completion",
+      "Runs AI readiness audits to generate package AI Readiness Score reports",
+      "Starts local observability dashboard (defaults to localhost:4177) for metadata inspection",
+      "Supports both CommonJS and ESM module formats for broad package compatibility",
+      "Integrates with Free LLM Router for ranked free OpenRouter models",
+      "Provides CLI interface with multiple commands: generate, agent, audit, dashboard",
+      "Supports environment variable and command-line configuration for all options"
     ],
     "configuration": [
-      "OPEN_ROUTER_MODEL environment variable",
-      "HAYAGRIVA_LLM_MODEL environment variable",
-      "OPENROUTER_API_KEY environment variable",
-      "Command-line options for mode, API key, model selection",
-      "Port configuration for dashboard server",
-      "Verbose logging option",
-      "Include source option for AI mode"
+      "OPEN_ROUTER_MODEL environment variable to set default OpenRouter model",
+      "HAYAGRIVA_LLM_MODEL environment variable as fallback model configuration",
+      "OPENROUTER_API_KEY environment variable for AI mode authentication",
+      "FREE_LLM_ROUTER_API_KEY environment variable for Free LLM Router access",
+      "--mode command-line option to set extraction mode (static or ai)",
+      "--api-key command-line option to pass OpenRouter API key",
+      "--model command-line option to specify OpenRouter model",
+      "--include-src command-line option to include full source in AI prompts",
+      "--freellmrouter command-line flag to use Free LLM Router (implies AI mode)",
+      "--rule command-line flag to generate Cursor rule .mdc files",
+      "--port command-line option to set dashboard server port (default 4177)",
+      "--verbose command-line flag to enable debug logging",
+      "--out command-line option to set AGENT.md output filename",
+      "--force command-line flag to overwrite existing AGENT.md files",
+      "--dir command-line option to set audit target directory"
     ],
     "limitations": [
-      "Requires Node.js 18+",
-      "AI mode requires OpenRouter API key",
-      "Limited to analyzing Node.js packages",
-      "Static analysis may miss dynamic behavior",
-      "Dashboard reads from .hayagriva-llm/ directory only"
+      "Requires Node.js 18 or higher",
+      "AI mode requires OpenRouter API key (or Free LLM Router API key for free tier)",
+      "Limited to analyzing Node.js packages only",
+      "Static analysis may miss dynamic code behavior or runtime-generated functionality",
+      "Dashboard reads metadata only from .hayagriva-llm/ directory",
+      "Free LLM Router depends on external free model availability from OpenRouter",
+      "CLI may exit process with status codes on errors"
     ],
     "security": [
-      "Stores OpenRouter API key in environment variables",
-      "Dashboard runs on localhost only",
-      "No network requests except for AI analysis mode",
-      "Reads package files from current working directory",
-      "Writes metadata files to package directory"
+      "API keys (OpenRouter, Free LLM Router) should be stored in environment variables or .env files, not hardcoded",
+      "Local dashboard binds to localhost only by default, no external network exposure",
+      "Only makes outbound network requests when using AI mode or Free LLM Router",
+      "Reads files only from the current working directory or specified target directory",
+      "Writes metadata files only to the current working directory or specified target directory",
+      "No execution of untrusted code during analysis"
     ],
     "observability": [
-      "Dashboard server at localhost:4177 (configurable)",
-      "Verbose logging option for debugging",
-      "Error reporting with exit codes",
-      "Process lifecycle logging"
+      "Local dashboard server at configurable localhost port (default 4177) for metadata inspection",
+      "Verbose debug logging option for all CLI commands",
+      "Error messages output to stderr with context for troubleshooting",
+      "Process exit codes indicate success (0) or failure (1)",
+      "Audit command generates AI Readiness Score reports with actionable insights"
     ],
     "integration": [
-      "Compatible with npm package workflows",
-      "Supports CI/CD pipeline integration",
-      "TypeScript project analysis",
-      "Command-line tool for scripting",
-      "Environment variable configuration",
-      "Local dashboard for metadata inspection",
-      "Build process automation"
+      "Generates Cursor IDE rule .mdc files for AI-powered code completion and context",
+      "Compatible with standard npm package workflows and package.json scripts",
+      "Supports CI/CD pipeline integration via CLI commands",
+      "TypeScript project analysis via ts-morph for accurate type metadata",
+      "AGENT.md files provide operating context for coding agents (e.g., Cursor, GitHub Copilot)",
+      "LLM metadata files improve package indexing for AI-powered code search tools",
+      "Build process automation via CLI integration with bundlers and test runners"
     ],
     "examples": [
       "hayagriva-llm generate --mode static",
       "hayagriva-llm generate --mode ai --api-key $OPENROUTER_API_KEY",
-      "hayagriva-llm dashboard --port 4177",
+      "hayagriva-llm generate --freellmrouter --rule",
+      "hayagriva-llm agent --out AGENT.md --force",
+      "hayagriva-llm audit --dir ./src",
+      "hayagriva-llm dashboard --port 8080",
       "hayagriva-llm --help"
     ]
   }

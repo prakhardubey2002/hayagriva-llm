@@ -56,6 +56,67 @@ hayagriva-llm agent [options]
 | `--out <file>` | Output filename           | `AGENT.md` |
 | `--force`      | Overwrite existing output | off        |
 
+### AI Readiness Audit
+
+Scan any JS/TS package and get an AI Readiness Score (0–100):
+
+```bash
+hayagriva audit
+# or
+hayagriva-llm audit
+```
+
+| Option         | Description                          | Default |
+| -------------- | ------------------------------------ | ------- |
+| `--dir <path>` | Directory to audit (defaults to cwd) | `.`     |
+
+The audit checks for:
+
+| Check                            | Weight |
+| -------------------------------- | ------ |
+| README.md exists                 | 10     |
+| TypeScript declarations          | 10     |
+| JSDoc comments                   | 10     |
+| Examples folder                  | 10     |
+| `exports` field in package.json  | 10     |
+| `llm.package.json`               | 25     |
+| Prompt templates                 | 10     |
+| Security / safety metadata       | 15     |
+
+**Example output:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  ⚡  Hayagriva AI Audit
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  AI Readiness Score     EXCELLENT
+
+  ████████████████████████████░░  93/100
+
+──────────────────────────────────────────────────────
+  Passed
+──────────────────────────────────────────────────────
+  ✓ README exists                (+10)
+  ✓ TypeScript declarations      (+10)
+  ✓ JSDoc comments present       (+10)
+  ✓ Package exports defined      (+10)
+  ✓ llm.package.json found       (+25)
+
+──────────────────────────────────────────────────────
+  Missing
+──────────────────────────────────────────────────────
+  ✗ Structured examples          (-10)
+
+──────────────────────────────────────────────────────
+  Recommendations
+──────────────────────────────────────────────────────
+  → Create an examples/ folder with usage snippets
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+```
+
+---
+
 **Examples:**
 
 ```bash
@@ -80,6 +141,12 @@ hayagriva-llm agent
 
 # Write to a custom filename and overwrite if it already exists
 hayagriva-llm agent --out Agent.md --force
+
+# Audit the current project for AI readiness
+hayagriva audit
+
+# Audit a specific directory
+hayagriva audit --dir /path/to/project
 ```
 
 ---

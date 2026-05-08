@@ -9,6 +9,7 @@ import 'dotenv/config';
 import { Command } from 'commander';
 import { generate } from './generate.js';
 import { generateAgentMd } from './agent.js';
+import { runAudit } from './audit.js';
 import { getVersion } from './version.js';
 import { DEFAULT_MODEL } from './types.js';
 import { startDashboardServer } from './dashboard.js';
@@ -108,6 +109,15 @@ program
       console.error('Error:', message);
       exitAfterCleanup(1);
     }
+  });
+
+program
+  .command('audit')
+  .description('Scan the current project and generate an AI Readiness Score report')
+  .option('--dir <path>', 'Directory to audit (defaults to cwd)')
+  .action((opts: { dir?: string }) => {
+    const target = opts.dir ?? process.cwd();
+    runAudit(target);
   });
 
 program.parse();

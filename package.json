@@ -4,7 +4,8 @@
   "description": "Structured LLM metadata standard for Node.js packages — llm.package.json and llm.package.txt",
   "type": "module",
   "bin": {
-    "hayagriva-llm": "dist/cli.cjs"
+    "hayagriva-llm": "dist/cli.cjs",
+    "hayagriva": "dist/cli.cjs"
   },
   "source": "src/cli.ts",
   "main": "dist/cli.cjs",

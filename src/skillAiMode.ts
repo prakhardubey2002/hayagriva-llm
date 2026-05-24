@@ -16,7 +16,7 @@ export interface SkillAiContext {
   brief?: string;
 }
 
-export interface SkillAiResult extends SkillTemplateInput {}
+export type SkillAiResult = SkillTemplateInput;
 
 function isStringArray(x: unknown): x is string[] {
   return Array.isArray(x) && x.every((v) => typeof v === 'string');

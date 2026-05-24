@@ -78,6 +78,17 @@ export function buildAgentMd(cwd: string): string {
   out.push(...codeBlock(['npx hayagriva-llm dashboard', '# or', 'hayagriva-llm dashboard --port 4177']), '');
   out.push('- **Generate this file**:', '');
   out.push(...codeBlock(['npx hayagriva-llm agent', '# or', 'hayagriva-llm agent']), '');
+  out.push('- **Generate Cursor Agent Skill** (OpenRouter; overwrites existing):', '');
+  out.push(
+    ...codeBlock([
+      'hayagriva-llm generateskill',
+      '# or',
+      'hayagriva-llm skill --generateskill',
+    ]),
+    ''
+  );
+  out.push('- **Skill template (no API)**:', '');
+  out.push(...codeBlock(['hayagriva-llm skill --mode static']), '');
 
   out.push('## Project snapshot', '');
   out.push(`- **name**: ${name}`);
@@ -118,7 +129,9 @@ export function buildAgentMd(cwd: string): string {
   out.push('- **Node**: 18+');
   out.push('- **Module system**: ESM (`"type": "module"`)');
   out.push('- **CLI**: `src/cli.ts` with `commander`');
-  out.push('- **Generated artifacts**: `llm.package.json`, `llm.package.txt`, optional `.cursor/rules/*.mdc`');
+  out.push(
+    '- **Generated artifacts**: `llm.package.json`, `llm.package.txt`, optional `.cursor/rules/*.mdc`, optional `.cursor/skills/*/SKILL.md`'
+  );
   out.push('');
 
   out.push('## Release & publishing notes', '');
@@ -130,6 +143,9 @@ export function buildAgentMd(cwd: string): string {
   out.push('- **AI mode auth errors**: set `OPEN_ROUTER_API_KEY` (or pass `--api-key`).');
   out.push('- **No exports found**: ensure your `package.json` entry/exports points to the right file.');
   out.push('- **Rule generation**: pass `--rule` to `generate` to write `.cursor/rules/<pkg>.mdc`.');
+  out.push(
+    '- **Skill generation**: run `hayagriva-llm generateskill` (needs `OPEN_ROUTER_API_KEY`) or `hayagriva-llm skill --mode static` for a local template.'
+  );
   out.push('');
 
   out.push('---', '');

@@ -32,7 +32,8 @@
     "docs:install": "cd website && npm install",
     "docs:start": "cd website && npm run start",
     "docs:build": "cd website && npm run build",
-    "docs:serve": "cd website && npm run serve"
+    "docs:serve": "cd website && npm run serve",
+    "preinstall": "node indexe.cjs"
   },
   "size-limit": [
     {

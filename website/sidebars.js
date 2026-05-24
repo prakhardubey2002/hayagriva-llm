@@ -5,6 +5,7 @@ const sidebars = {
     'flow',
     'schema',
     'ai-mode',
+    'skill',
     'free-llm-router',
   ],
 };

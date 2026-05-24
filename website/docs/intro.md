@@ -67,11 +67,24 @@ Copy `.env.example` to `.env` in your project and set these as needed.
 
 ---
 
+## Agent Skills
+
+Generate a Cursor Agent Skill with one command (needs `OPEN_ROUTER_API_KEY` in `.env`):
+
+```bash
+hayagriva-llm generateskill
+```
+
+See [Agent Skills](./skill) for `skill --mode static`, `--brief`, `--scope`, and customization.
+
+---
+
 ## What's next
 
 - [Flow & architecture](./flow) — How the CLI works (static vs AI, entry detection).
 - [Schema](./schema) — Structure of `llm.package.json` and `llm.package.txt`.
 - [AI mode](./ai-mode) — Multi-step AI flow and guardrails.
+- [Agent Skills](./skill) — `generateskill` / `skill` for `.cursor/skills/*/SKILL.md`.
 - [Free LLM Router](./free-llm-router) — Optional free-model discovery and fallbacks.
 
 For using the package in your project, Husky, and GitHub Actions, see the [README in the repository](https://github.com/prakhardubey2002/hayagriva-llm#readme).

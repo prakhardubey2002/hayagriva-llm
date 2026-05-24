@@ -41,6 +41,20 @@ npx hayagriva-llm agent
 hayagriva-llm agent
 ```
 
+- **Generate a Cursor Agent Skill** (OpenRouter; overwrites existing):
+
+```
+hayagriva-llm generateskill
+# or
+hayagriva-llm skill --generateskill
+```
+
+- **Skill template without API** (local):
+
+```
+hayagriva-llm skill --mode static
+```
+
 ## Project snapshot
 
 - **name**: hayagriva-llm

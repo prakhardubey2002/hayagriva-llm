@@ -56,6 +56,56 @@ hayagriva-llm agent [options]
 | `--out <file>` | Output filename           | `AGENT.md` |
 | `--force`      | Overwrite existing output | off        |
 
+### Cursor / Claude Agent Skills (SKILL.md)
+
+Generate a [Cursor Agent Skill](https://cursor.com/docs/context/skills) — a mutable `SKILL.md` under `.cursor/skills/<name>/` so coding agents know how to work in your project.
+
+**Dead simple (OpenRouter, overwrites existing):**
+
+```bash
+# Set OPEN_ROUTER_API_KEY in .env first
+hayagriva-llm generateskill
+```
+
+Same as `hayagriva-llm skill --generateskill`. Uses your package / `llm.package.json` description as the skill brief when `--brief` is omitted.
+
+**Full `skill` command:**
+
+```bash
+hayagriva-llm skill [options]
+```
+
+| Option            | Description                                                                 | Default                   |
+| ----------------- | --------------------------------------------------------------------------- | ------------------------- |
+| `--generateskill` | Shortcut: AI via OpenRouter + overwrite (same as `generateskill` command)   | off                       |
+| `--mode <type>`   | `static` (local template, no API) or `ai` (single OpenRouter call)          | `static`                  |
+| `--name <slug>`   | Skill folder name                                                           | slug from package name    |
+| `--brief <text>`  | What the skill should help with                                             | package description       |
+| `--scope <where>` | `project` (`.cursor/skills/`) or `personal` (`~/.cursor/skills/`)           | `project`                 |
+| `--force`         | Overwrite existing `SKILL.md`                                               | off (`generateskill` on)  |
+| `--api-key <key>` | OpenRouter API key (AI mode)                                                | `OPEN_ROUTER_API_KEY` env |
+| `--model <name>`  | OpenRouter model (AI mode)                                                  | `openai/gpt-4o-mini`      |
+| `--freellmrouter` | Free LLM Router model list (implies AI mode)                                | off                       |
+| `--verbose`       | Debug logging                                                               | off                       |
+
+**Examples:**
+
+```bash
+# First time or regenerate (AI + overwrite)
+hayagriva-llm generateskill
+
+# Custom purpose
+hayagriva-llm generateskill --brief "Review API routes and OpenAPI changes"
+
+# Local template only (no API key)
+hayagriva-llm skill --mode static
+
+# AI with explicit flags
+hayagriva-llm skill --mode ai --brief "Ship npm releases" --force
+```
+
+Output: `.cursor/skills/<name>/SKILL.md` with sections you can edit (Instructions, Workflow, Examples, Your notes).
+
 ### AI Readiness Audit
 
 Scan any JS/TS package and get an AI Readiness Score (0–100):
@@ -142,6 +192,12 @@ hayagriva-llm agent
 # Write to a custom filename and overwrite if it already exists
 hayagriva-llm agent --out Agent.md --force
 
+# Generate a Cursor Agent Skill (OpenRouter; overwrites existing)
+hayagriva-llm generateskill
+
+# Local skill template (no API key)
+hayagriva-llm skill --mode static --brief "Work on this CLI package"
+
 # Audit the current project for AI readiness
 hayagriva audit
 
@@ -178,6 +234,8 @@ With **`--freellmrouter`**, hayagriva-llm calls OpenRouter using your OpenRouter
 
 - **`llm.package.json`** — Structured metadata: name, version, description, `exports`, `hooks`, `frameworks`, optional `summary`, `sideEffects`, `keywords`; IDE- and search-friendly.
 - **`llm.package.txt`** — LLM-optimized plain-text summary for context windows and retrieval.
+- **`.cursor/skills/<name>/SKILL.md`** — Optional Agent Skill (from `generateskill` / `skill`).
+- **`.cursor/rules/<package>.mdc`** — Optional Cursor rule (from `generate --rule`).
 
 ### Observability (local)
 
